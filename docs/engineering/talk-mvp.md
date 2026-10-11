@@ -87,7 +87,7 @@ message에는 ID·conversation_id·seq_no·role·content·created_at이 있다. 
 }
 ```
 
-- 요약 페이지의 `이 내용으로 정리하기`는 서버 확정 성공 직후 `/talk?summary={summary_id}` 그림일기 페이지로 이동한다. 확정 실패 시 요약 페이지에서 오류를 표시한다. 이동한 페이지에서 중복 요약 확인 없이 이미지 생성을 바로 시작한다. 실패 시 `그림 다시 만들기`로 재시도한다.
+- 요약 페이지의 `이 내용으로 정리하기`는 서버 확정 성공 직후 현재 대화 URL을 유지한 채 그림일기 생성 컴포넌트로 화면을 전환한다. `/talk?summary=…`로 이동하지 않으며 확정된 요약 ID를 컴포넌트에 직접 전달해 이미지 생성을 시작한다. 확정 실패 시 요약 페이지에서 오류를 표시하고, 이미지 생성 실패 시 `그림 다시 만들기`로 재시도한다.
 - `TalkSession`의 `onConfirmed(handoff)`는 서버 확정 응답 또는 확정 요약 조회 후 전달한다. `ConfirmedSummaryBoundary`의 그림일기 이동 링크는 확정된 `summary_id`로 main의 `/talk?summary={summary_id}`를 연다. 로그인 복귀도 이 UUID 쿼리 경로만 허용한다.
 - 독립적인 후속 화면은 handoff GET 경로로 동일 서버 데이터를 다시 읽는다. 서버의 `TalkRepository.confirmed_summary(member_id, conversation_id, summary_id)`도 사용할 수 있다.
 - 후속 API는 브라우저가 보낸 summary 본문이나 confirmed=true를 신뢰하지 말고 세션 회원과 위 식별자로 서버 저장·소유권·확정을 검증한다.

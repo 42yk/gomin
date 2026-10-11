@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
 import { PageShell } from "@/components/page-shell";
+import { SummaryDiary } from "@/components/summary-diary";
 import { useAuth } from "@/providers/auth-provider";
 import { talkApi } from "@/lib/talk-api";
 import { canFinish, canSend, createTalkController, enterSends, messageLength, type TalkApi, type TalkSummary, type SummaryHandoff } from "@/lib/talk";
@@ -37,7 +37,7 @@ export function ConfirmedSummaryBoundary({ handoff }: { handoff: SummaryHandoff 
 export function TalkSession({ conversationId, summaryId, api = talkApi, onConfirmed }: {
   conversationId?: string; summaryId?: string; api?: TalkApi; onConfirmed?: (handoff: SummaryHandoff) => void;
 }) {
-  const router = useRouter();
+  const [diarySummaryId, setDiarySummaryId] = useState<string | null>(null);
   const [controller] = useState(() => {
     const showConversation = (id: string) => window.history.replaceState(null, "", `/talk/${id}`);
     return createTalkController(api, { onCreated: showConversation, onResumed: showConversation });
@@ -67,7 +67,7 @@ export function TalkSession({ conversationId, summaryId, api = talkApi, onConfir
   async function confirmSummary() {
     await controller.confirm();
     const handoff = controller.getSnapshot().handoff;
-    if (handoff) router.push(`/talk?summary=${encodeURIComponent(handoff.summary_id)}`);
+    if (handoff) setDiarySummaryId(handoff.summary_id);
   }
   function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     const mobile = window.matchMedia("(max-width: 767px), (pointer: coarse)").matches;
@@ -75,6 +75,7 @@ export function TalkSession({ conversationId, summaryId, api = talkApi, onConfir
       event.preventDefault(); void controller.send();
     }
   }
+  if (diarySummaryId) return <SummaryDiary summaryId={diarySummaryId} />;
   return <PageShell page="talk" contentClassName={styles.content}>
     <div className={styles.surface}>
       <div className={styles.topbar}>

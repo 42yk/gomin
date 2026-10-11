@@ -114,11 +114,13 @@ try {
     await input.fill('추가로 가족과의 관계도 고민이에요.'); await send.click(); await waitFor(() => f.calls().sends === 2, page); f.reply();
     await page.getByText('모리가 네 이야기를 듣고 있어요… 입력은 계속할 수 있어요.').waitFor({ state: 'hidden' });
     await finish.click(); await waitFor(() => f.calls().summaries === 2, page); f.summary();
-    await confirm.waitFor(); await confirm.click();
+    await confirm.waitFor();
+    const conversationUrl = page.url();
+    await confirm.click();
     const summaryId = f.conversation.summaries.at(-1).id;
-    await page.waitForURL(`**/talk?summary=${summaryId}`);
     assert.equal(f.calls().confirmations, 1); assert.equal(f.conversation.summaries.length, 2);
     await waitFor(() => f.calls().imageRequests === 1, page);
+    assert.equal(page.url(), conversationUrl);
     await page.getByRole('alert').filter({ hasText: '이미지를 만들지 못했어요.' }).waitFor();
     assert.equal(await page.getByRole('button', { name: '이 요약으로 그림 만들기' }).count(), 0);
     assert.equal(await page.getByText(f.conversation.summaries.at(-1).current_feeling, { exact: true }).count(), 0);
