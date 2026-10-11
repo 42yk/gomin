@@ -87,11 +87,12 @@ message에는 ID·conversation_id·seq_no·role·content·created_at이 있다. 
 }
 ```
 
+- 요약 페이지의 `이 내용으로 정리하기`는 서버 확정 성공 직후 `/talk?summary={summary_id}` 그림일기 페이지로 이동한다. 확정 실패 시 요약 페이지에서 오류를 표시한다. 이미지 생성은 이동한 페이지의 `이 요약으로 그림 만들기` 버튼에서 시작한다.
 - `TalkSession`의 `onConfirmed(handoff)`는 서버 확정 응답 또는 확정 요약 조회 후 전달한다. `ConfirmedSummaryBoundary`의 그림일기 이동 링크는 확정된 `summary_id`로 main의 `/talk?summary={summary_id}`를 연다. 로그인 복귀도 이 UUID 쿼리 경로만 허용한다.
 - 독립적인 후속 화면은 handoff GET 경로로 동일 서버 데이터를 다시 읽는다. 서버의 `TalkRepository.confirmed_summary(member_id, conversation_id, summary_id)`도 사용할 수 있다.
 - 후속 API는 브라우저가 보낸 summary 본문이나 confirmed=true를 신뢰하지 말고 세션 회원과 위 식별자로 서버 저장·소유권·확정을 검증한다.
 - main의 후속 이미지 구현은 `/talk?summary={summary_id}`와 `POST /api/v1/diary-images`의 `summary_id`로 저장 요약을 참조한다. 이미지 결과는 작업 큐 없이 `diary_results.summary_id`에 직접 연결한다. 기존 [그림일기 MVP](diary-mvp.md)와 [공통 ERD](conversation-collection-erd.md)를 따른다.
-- HW 확정 API와 화면 이동은 이미지 job·diary_results·collection_entries를 만들지 않는다. 전달 화면은 요약 확정과 이미지·저장 미시작을 구분한다. 이미지 생성은 기존 후속 화면의 별도 버튼에서 시작한다.
+- HW 확정 API와 화면 이동은 이미지 job·diary_results·collection_entries를 만들지 않는다. 별도 확정 요약 조회 화면은 요약 확정과 이미지·저장 미시작을 구분한다. 이미지 생성은 기존 후속 화면의 별도 버튼에서 시작한다.
 
 ## 저장과 실행 방식
 

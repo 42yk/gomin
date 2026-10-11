@@ -109,15 +109,9 @@ try {
     await page.getByText('모리가 네 이야기를 듣고 있어요… 입력은 계속할 수 있어요.').waitFor({ state: 'hidden' });
     await finish.click(); await waitFor(() => f.calls().summaries === 2, page); f.summary();
     await confirm.waitFor(); await confirm.click();
-    try { await page.getByText('요약을 확정했어요. 이 내용으로 그림일기를 만들 수 있어요.').waitFor(); }
-    catch (error) { console.log(JSON.stringify({ viewport, calls: f.calls(), saved: f.conversation, screen: await page.locator('body').innerText() })); throw error; }
-    assert.equal(f.calls().confirmations, 1); assert.equal(f.conversation.summaries.length, 2);
-    assert.equal(await page.getByText('이미지 생성과 컬렉션 저장은 아직 시작되지 않았어요.').count(), 1);
-    const diary = page.getByRole('link', { name: '그림일기 만들기로 이동' });
-    await visibleInViewport(diary, page);
     const summaryId = f.conversation.summaries.at(-1).id;
-    assert.equal(await diary.getAttribute('href'), `/talk?summary=${summaryId}`);
-    await diary.click(); await page.waitForURL(`**/talk?summary=${summaryId}`);
+    await page.waitForURL(`**/talk?summary=${summaryId}`);
+    assert.equal(f.calls().confirmations, 1); assert.equal(f.conversation.summaries.length, 2);
     await page.getByRole('button', { name: '이 요약으로 그림 만들기' }).waitFor();
     assert.equal(f.calls().imageRequests, 0);
     await page.goto(`${base}/talk/${f.conversation.id}/handoff/${summaryId}`);
