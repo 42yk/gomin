@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { PageShell } from "@/components/page-shell";
 import { useAuth } from "@/providers/auth-provider";
@@ -8,7 +8,6 @@ import { apiFetch } from "@/lib/api";
 import { formatEncouragement } from "@/lib/diary-text";
 import styles from "./summary-diary.module.css";
 
-type Summary = { id: string; current_feeling: string; main_concerns: string[]; emotion_tags: string[] };
 type Result = { id: string; title: string; encouragement_text: string; diary_date: string; image_url: string };
 
 export function SummaryDiary({ summaryId }: { summaryId: string }) {
@@ -17,19 +16,14 @@ export function SummaryDiary({ summaryId }: { summaryId: string }) {
 }
 
 function MemberDiary({ summaryId }: { summaryId: string }) {
-  const [summary, setSummary] = useState<Summary | null>(null);
   const [result, setResult] = useState<Result | null>(null);
-  const [pending, setPending] = useState(false);
+  const [pending, setPending] = useState(true);
+  const generating = useRef(false);
   const [entryId, setEntryId] = useState<string | null>(null);
   const [error, setError] = useState("");
-  useEffect(() => {
-    const controller = new AbortController();
-    void apiFetch<Summary>(`/api/v1/summaries/${encodeURIComponent(summaryId)}`, { signal: controller.signal })
-      .then(setSummary).catch(() => { if (!controller.signal.aborted) setError("요약을 불러올 수 없어요."); });
-    return () => controller.abort();
-  }, [summaryId]);
-  async function generate() {
-    if (pending) return;
+  const generate = useCallback(async () => {
+    if (generating.current) return;
+    generating.current = true;
     setPending(true); setError("");
     try {
       setResult(await apiFetch<Result>("/api/v1/diary-images", {
@@ -37,8 +31,13 @@ function MemberDiary({ summaryId }: { summaryId: string }) {
         body: JSON.stringify({ summary_id: summaryId }),
       }));
     } catch { setError("이미지를 만들지 못했어요. 다시 시도해 주세요."); }
-    finally { setPending(false); }
-  }
+    finally { generating.current = false; setPending(false); }
+  }, [summaryId]);
+  useEffect(() => {
+    // Cancel the development effect replay before sending a paid generation request.
+    const timer = window.setTimeout(() => void generate(), 0);
+    return () => window.clearTimeout(timer);
+  }, [generate]);
   async function save() {
     if (!result || pending) return;
     setPending(true); setError("");
@@ -57,11 +56,9 @@ function MemberDiary({ summaryId }: { summaryId: string }) {
       {entryId ? <p role="status">컬렉션에 저장했어요. <Link href={`/collection#entry=${entryId}`}>저장한 일기 보기</Link></p>
         : <button type="button" disabled={pending} onClick={() => void save()}>{pending ? "저장하는 중이에요…" : "컬렉션에 저장하기"}</button>}
     </> : <>
-      <h1>오늘의 마음을 그림으로 남겨요</h1>
-      {summary ? <><p>{summary.current_feeling}</p><ul>{summary.main_concerns.map((text, i) => <li key={i}>{text}</li>)}</ul>
-        <p>{summary.emotion_tags.join(" · ")}</p>
-        <button type="button" disabled={pending} onClick={() => void generate()}>{pending ? "그림을 만들고 있어요…" : "이 요약으로 그림 만들기"}</button>
-      </> : !error && <p role="status">요약을 불러오는 중이에요.</p>}
+      <h1>{pending ? "오늘의 마음을 그림으로 만들고 있어요" : "그림을 완성하지 못했어요"}</h1>
+      {pending ? <p role="status">그림을 만들고 있어요… 잠시만 기다려 주세요.</p>
+        : <button type="button" onClick={() => void generate()}>그림 다시 만들기</button>}
     </>}
     {error && <p role="alert">{error}</p>}
   </section></PageShell>;
