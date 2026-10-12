@@ -38,5 +38,5 @@ jobs:
             fi
           done
           npx --no-install supabase link --project-ref "$SUPABASE_PROJECT_ID"
-          npx --no-install supabase db push --linked --skip-vault --dry-run
-          npx --no-install supabase db push --linked --skip-vault --yes
+          npx --no-install supabase db push --linked --skip-vault --include-all --dry-run
+          npx --no-install supabase db push --linked --skip-vault --include-all --yes
