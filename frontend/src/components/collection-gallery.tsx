@@ -198,8 +198,13 @@ function MemberCollection({ memberId }: { memberId: string }) {
       </article>
       : <dialog ref={dialog} className={styles.dialog} aria-label="고민일기 상세" onCancel={(event) => { event.preventDefault(); close(); }}
         onClick={(event) => { if (event.target === event.currentTarget) { const box = event.currentTarget.getBoundingClientRect(); if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) close(); } }}>
-        <button className={styles.closeButton} type="button" aria-label="상세 닫기" onClick={close} autoFocus><AssetIcon name="close" /></button>
-        {detailBody}
+        {state.detail && <div className={styles.desktopImage}>
+          <RecordImage image={state.detail.image} hero />
+        </div>}
+        <div className={styles.desktopSummary}>
+          <button className={styles.closeButton} type="button" aria-label="상세 닫기" onClick={close} autoFocus><AssetIcon name="close" /></button>
+          {detailBody}
+        </div>
       </dialog>)}
   </PageShell>;
 }
