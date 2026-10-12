@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { PageShell } from "@/components/page-shell";
 import { useAuth } from "@/providers/auth-provider";
 import { apiFetch } from "@/lib/api";
@@ -16,6 +17,7 @@ export function SummaryDiary({ summaryId }: { summaryId: string }) {
 }
 
 function MemberDiary({ summaryId }: { summaryId: string }) {
+  const router = useRouter();
   const [result, setResult] = useState<Result | null>(null);
   const [pending, setPending] = useState<"generate" | "save" | null>("generate");
   const requestInFlight = useRef(false);
@@ -47,10 +49,11 @@ function MemberDiary({ summaryId }: { summaryId: string }) {
     try {
       const entry = await apiFetch<{ id: string }>(`/api/v1/diary-results/${result.id}/collection-entry`, { method: "POST" });
       setEntryId(entry.id);
+      router.push(`/collection#entry=${encodeURIComponent(entry.id)}`);
     } catch { setError("컬렉션에 저장하지 못했어요. 다시 시도해 주세요."); }
     finally { requestInFlight.current = false; setPending(null); }
   }
-  return <PageShell page="talk"><section className={styles.card}>
+  return <PageShell page="talk" contentClassName={styles.content}><section className={styles.card}>
     {result ? <>
       <h1>{result.title}</h1><time dateTime={result.diary_date}>{result.diary_date}</time>
       {/* eslint-disable-next-line @next/next/no-img-element */}

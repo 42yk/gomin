@@ -16,7 +16,7 @@
 .filmCard:hover { box-shadow: 0 0 0 6px rgb(255 252 245 / 80%); }
 .filmCard:focus-visible, .mobileCard:focus-visible { outline: 5px solid #fffcf5; outline-offset: 6px; }
 .photo { position: relative; width: 100%; aspect-ratio: 320 / 300; overflow: hidden; flex-shrink: 0; }
-.photo img { display: block; position: absolute; max-width: none; width: var(--image-width); height: 100%; object-fit: cover; left: var(--image-left); top: var(--image-top); pointer-events: none; }
+.photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; pointer-events: none; }
 .arrow { position: absolute; z-index: 1; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: clamp(32px, calc(3.90625 * var(--unit)), 100px); aspect-ratio: 1; padding: 0 0 .07em; border: 0; border-radius: 50%; background: #fbf9f2; color: #2b5447; font: 400 clamp(28px, calc(3.125 * var(--unit)), 80px)/1 sans-serif; cursor: pointer; }
 .previous { left: 1.484375%; }
 .next { right: 1.5625%; }
@@ -31,8 +31,14 @@
 .feedback h2 { font-size: 28px; margin: 0 0 16px; }
 .feedback p { font: 16px/1.6 sans-serif; }
 .feedback a, .feedback button, .detailState button { display: inline-block; margin-top: 12px; padding: 12px 24px; border: 0; border-radius: 999px; color: #fff; background: #294f47; text-decoration: none; font: inherit; font-size: 22px; cursor: pointer; }
-.dialog { position: fixed; width: clamp(360px, 28.90625vw, 740px); max-width: calc(100vw - 32px); max-height: calc(100dvh - 32px); overflow-y: auto; border: 0; border-radius: 16px; padding: clamp(24px, 1.5625vw, 40px) clamp(24px, 2.1875vw, 56px) clamp(20px, 1.25vw, 32px); color: #344350; background: #fcf9f1; box-shadow: 0 12px 20px rgb(0 0 0 / 20%); }
+.dialog { position: fixed; width: min(1748px, calc(100vw - 64px)); max-width: calc(100vw - 32px); max-height: calc(100dvh - 32px); overflow-y: auto; border: 0; padding: 0; color: #344350; background: transparent; }
+.dialog[open] { display: grid; grid-template-columns: minmax(0, 960fr) minmax(360px, 740fr); align-items: center; gap: 24px; }
+.dialog:not(:has(.desktopImage)) { width: clamp(360px, 28.90625vw, 740px); grid-template-columns: minmax(0, 1fr); }
 .dialog::backdrop { background: rgb(0 0 0 / 12%); }
+.desktopImage { min-width: 0; }
+.desktopImage .heroPhoto { aspect-ratio: auto; }
+.desktopImage .heroPhoto img { height: auto; max-height: calc(100dvh - 32px); object-fit: contain; }
+.desktopSummary { position: relative; min-width: 0; border-radius: 16px; padding: clamp(24px, 1.5625vw, 40px) clamp(24px, 2.1875vw, 56px) clamp(20px, 1.25vw, 32px); background: #fcf9f1; box-shadow: 0 12px 20px rgb(0 0 0 / 20%); }
 .detailHeading { border-bottom: 1px solid #dddcd3; padding-bottom: clamp(12px, 1.484375vw, 38px); margin-bottom: clamp(10px, 1.015625vw, 26px); text-align: center; }
 .detailHeading time { font: clamp(11px, .859375vw, 22px)/1.45 sans-serif; }
 .titleRow { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; }
@@ -82,8 +88,9 @@
   .feedback h2 { font-size: 24px; }
   .mobileDetail { display: block; position: fixed; z-index: 8; inset: 0; overflow-y: auto; background: #fcf9f1; color: #344350; overscroll-behavior: contain; }
   .mobileHero { position: relative; min-height: 76vw; background: #294f47; }
-  .heroPhoto { aspect-ratio: 320 / 244; }
-  .heroPhoto img { top: calc(var(--image-top) * 300 / 244 - 18%); }
+  .mobileHero:has(.heroPhoto) { min-height: 0; }
+  .heroPhoto { aspect-ratio: auto; }
+  .heroPhoto img { height: auto; }
   :global(.page-shell--collection:has(article[aria-label="고민일기 상세"]) .site-header),
   :global(.page-shell--collection:has(article[aria-label="고민일기 상세"]) .skip-link) { display: none; }
   .backButton { position: absolute; left: 12px; top: calc(12px + env(safe-area-inset-top, 0px)); display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: rgb(11 14 13 / 20%); color: white; font: 32px/1 sans-serif; cursor: pointer; }

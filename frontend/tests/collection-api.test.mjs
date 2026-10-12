@@ -22,7 +22,7 @@ test("real list maps entry IDs and signed images without trusting a client membe
   });
   const [item] = await repo.list("untrusted-member-id", signal);
   assert.equal(item.id, row.id);
-  assert.deepEqual(item.image, { src: row.image_url, width: 1, left: 0, top: 0 });
+  assert.deepEqual(item.image, { src: row.image_url });
   assert.deepEqual(item.categories, ["불안"]);
 });
 
@@ -42,7 +42,7 @@ test("detail displays the original summary and the selected entry image", async 
   assert.equal(detail.mind, "불안해요");
   assert.deepEqual(detail.concerns, ["시험", "관계"]);
   assert.deepEqual(detail.emotions, row.emotion_tags);
-  assert.equal(detail.image.src, row.image_url);
+  assert.deepEqual(detail.image, { src: row.image_url });
 });
 
 test("detail distinguishes not found from request errors", async () => {
