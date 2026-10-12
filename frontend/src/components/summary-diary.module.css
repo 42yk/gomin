@@ -1,6 +1,14 @@
 .card { width: min(100% - 32px, 640px); margin: 32px auto; padding: 24px; background: #fffaf2; border-radius: 20px; }
 .card h1 { font-size: 28px; }
 .card p, .card li { line-height: 1.7; }
+.encouragement { white-space: pre-line; }
 .card button { padding: 12px 20px; border: 0; border-radius: 12px; background: #466448; color: white; cursor: pointer; }
 .card button:disabled { opacity: .6; cursor: wait; }
+.actions { display: flex; gap: 12px; }
+.actions button { flex: 1; min-width: 0; min-height: 48px; }
+.card .secondary { border: 1px solid #466448; background: transparent; color: #466448; }
+.card button:focus-visible { outline: 2px solid #294f47; outline-offset: 3px; }
 .image { display: block; width: 100%; height: auto; margin: 16px 0; border-radius: 12px; }
+@media (max-width: 480px) {
+  .actions { flex-direction: column; }
+}
