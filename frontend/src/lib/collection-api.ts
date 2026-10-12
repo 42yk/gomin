@@ -13,7 +13,7 @@ type DetailRow = CollectionRow & { encouragement_text: string; current_feeling: 
 export function collectionItem(row: CollectionRow): CollectionItem {
   return {
     id: row.id, title: row.title, date: row.diary_date,
-    image: { src: row.image_url, width: 1, left: 0, top: 0 },
+    image: { src: row.image_url },
     categories: collectionCategories.filter((tag) => tag !== "전체" && row.emotion_tags.includes(tag)) as CollectionItem["categories"],
   };
 }

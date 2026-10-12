@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { PageShell } from "@/components/page-shell";
 import { useAuth } from "@/providers/auth-provider";
 import { useUiStore } from "@/providers/ui-store-provider";
@@ -35,14 +35,9 @@ const formatDate = (date: string, weekday = false) => {
 };
 
 function RecordImage({ image, hero = false }: { image: CollectionImage; hero?: boolean }) {
-  const style = {
-    "--image-width": `${image.width * 100}%`,
-    "--image-left": `${image.left * 100}%`,
-    "--image-top": `${image.top * 100}%`,
-  } as CSSProperties;
-  return <div className={`${styles.photo} ${hero ? styles.heroPhoto : ""}`} style={style}>
+  return <div className={`${styles.photo} ${hero ? styles.heroPhoto : ""}`}>
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={image.src} alt="" width={1672} height={941} />
+    <img src={image.src} alt="" />
   </div>;
 }
 

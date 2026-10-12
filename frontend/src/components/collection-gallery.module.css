@@ -16,7 +16,7 @@
 .filmCard:hover { box-shadow: 0 0 0 6px rgb(255 252 245 / 80%); }
 .filmCard:focus-visible, .mobileCard:focus-visible { outline: 5px solid #fffcf5; outline-offset: 6px; }
 .photo { position: relative; width: 100%; aspect-ratio: 320 / 300; overflow: hidden; flex-shrink: 0; }
-.photo img { display: block; position: absolute; max-width: none; width: var(--image-width); height: 100%; object-fit: cover; left: var(--image-left); top: var(--image-top); pointer-events: none; }
+.photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; pointer-events: none; }
 .arrow { position: absolute; z-index: 1; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: clamp(32px, calc(3.90625 * var(--unit)), 100px); aspect-ratio: 1; padding: 0 0 .07em; border: 0; border-radius: 50%; background: #fbf9f2; color: #2b5447; font: 400 clamp(28px, calc(3.125 * var(--unit)), 80px)/1 sans-serif; cursor: pointer; }
 .previous { left: 1.484375%; }
 .next { right: 1.5625%; }
@@ -82,8 +82,9 @@
   .feedback h2 { font-size: 24px; }
   .mobileDetail { display: block; position: fixed; z-index: 8; inset: 0; overflow-y: auto; background: #fcf9f1; color: #344350; overscroll-behavior: contain; }
   .mobileHero { position: relative; min-height: 76vw; background: #294f47; }
-  .heroPhoto { aspect-ratio: 320 / 244; }
-  .heroPhoto img { top: calc(var(--image-top) * 300 / 244 - 18%); }
+  .mobileHero:has(.heroPhoto) { min-height: 0; }
+  .heroPhoto { aspect-ratio: auto; }
+  .heroPhoto img { height: auto; }
   :global(.page-shell--collection:has(article[aria-label="고민일기 상세"]) .site-header),
   :global(.page-shell--collection:has(article[aria-label="고민일기 상세"]) .skip-link) { display: none; }
   .backButton { position: absolute; left: 12px; top: calc(12px + env(safe-area-inset-top, 0px)); display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: rgb(11 14 13 / 20%); color: white; font: 32px/1 sans-serif; cursor: pointer; }

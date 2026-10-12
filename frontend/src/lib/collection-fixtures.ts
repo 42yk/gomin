@@ -1,13 +1,5 @@
-import type { CollectionDetail, CollectionImage } from "./collection";
-// Exact reference-photo crops supplied by Figma 84:893–918, normalized to a 320×300 slot.
-const crops: CollectionImage[] = [
-  { src: "/images/collection/reference.png", width: 2907.826 / 320, left: -252.17 / 320, top: -679.57 / 300 },
-  { src: "/images/collection/reference.png", width: 2850 / 320, left: -647.95 / 320, top: -698.86 / 300 },
-  { src: "/images/collection/reference.png", width: 3040 / 320, left: -1132.73 / 320, top: -782.73 / 300 },
-  { src: "/images/collection/reference.png", width: 3021.687 / 320, left: -1546.02 / 320, top: -784.34 / 300 },
-  { src: "/images/collection/reference.png", width: 2972.444 / 320, left: -1955.56 / 320, top: -770.89 / 300 },
-  { src: "/images/collection/reference.png", width: 2866.286 / 320, left: -2318.86 / 320, top: -725.14 / 300 },
-];
+import type { CollectionDetail } from "./collection";
+const image = { src: "/images/character/mori.png" };
 const stories: Omit<CollectionDetail, "id" | "image">[] = [
   { date: "2025-08-28", title: "조금 더, 나답게", caption: "오늘도 조금씩, 나에게 가까워지는 중이에요.",
     mind: "새로운 환경이 아직은 낯설고 긴장되지만,\n잘 해내고 싶은 마음이 커요.\n조금 더 나답게, 천천히 적응하고 싶어요.",
@@ -36,10 +28,10 @@ const stories: Omit<CollectionDetail, "id" | "image">[] = [
 ];
 // Shared public demo content, independent of local seed accounts or production member IDs.
 export const collectionFixtures: CollectionDetail[] = [
-  ...stories.map((story, index) => ({ ...story, image: crops[index], id: `local-1-${index + 1}` })),
+  ...stories.map((story, index) => ({ ...story, image, id: `local-1-${index + 1}` })),
   ...stories.slice(0, 2).map((story, index) => ({
     ...story, title: index ? "내 속도로 걷기" : "작은 용기를 내본 날", date: `2025-09-${15 + index}`,
     mind: "오늘은 작은 용기를 내어 내 마음을 전했어요. 서두르지 않고 나만의 속도로 걸어가고 싶어요.",
-    image: crops[index], id: `local-1-${index + 7}`,
+    image, id: `local-1-${index + 7}`,
   })),
 ];
