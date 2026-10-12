@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
 import { PageShell } from "@/components/page-shell";
+import { SummaryDiary } from "@/components/summary-diary";
 import { useAuth } from "@/providers/auth-provider";
 import { talkApi } from "@/lib/talk-api";
 import { canFinish, canSend, createTalkController, enterSends, messageLength, type TalkApi, type TalkSummary, type SummaryHandoff } from "@/lib/talk";
@@ -36,6 +37,7 @@ export function ConfirmedSummaryBoundary({ handoff }: { handoff: SummaryHandoff 
 export function TalkSession({ conversationId, summaryId, api = talkApi, onConfirmed }: {
   conversationId?: string; summaryId?: string; api?: TalkApi; onConfirmed?: (handoff: SummaryHandoff) => void;
 }) {
+  const [diarySummaryId, setDiarySummaryId] = useState<string | null>(null);
   const [controller] = useState(() => {
     const showConversation = (id: string) => window.history.replaceState(null, "", `/talk/${id}`);
     return createTalkController(api, { onCreated: showConversation, onResumed: showConversation });
@@ -62,12 +64,18 @@ export function TalkSession({ conversationId, summaryId, api = talkApi, onConfir
   const busySummary = state.summaryStatus === "waiting" || state.summaryStatus === "loading";
   const summary = state.handoff?.summary ?? state.conversation?.summaries.at(-1);
   const count = messageLength(state.draft);
+  async function confirmSummary() {
+    await controller.confirm();
+    const handoff = controller.getSnapshot().handoff;
+    if (handoff) setDiarySummaryId(handoff.summary_id);
+  }
   function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     const mobile = window.matchMedia("(max-width: 767px), (pointer: coarse)").matches;
     if (event.key === "Enter" && enterSends({ mobile, shift: event.shiftKey, composing: composing.current || event.nativeEvent.isComposing, keyCode: event.keyCode })) {
       event.preventDefault(); void controller.send();
     }
   }
+  if (diarySummaryId) return <SummaryDiary summaryId={diarySummaryId} />;
   return <PageShell page="talk" contentClassName={styles.content}>
     <div className={styles.surface}>
       <div className={styles.topbar}>
@@ -83,7 +91,7 @@ export function TalkSession({ conversationId, summaryId, api = talkApi, onConfir
           {state.confirmError ? <p className={styles.error} role="alert">{state.confirmError}</p> : null}
           {state.error ? <p className={styles.error} role="alert">{state.error}</p> : null}
           {state.handoff ? <ConfirmedSummaryBoundary handoff={state.handoff} /> : <div className={styles.actions}>
-            <button className={styles.primary} disabled={state.confirming} onClick={() => void controller.confirm()}>{state.confirming ? "요약을 확정하고 있어요…" : "이 내용으로 정리하기"}</button>
+            <button className={styles.primary} disabled={state.confirming} onClick={() => void confirmSummary()}>{state.confirming ? "요약을 확정하고 있어요…" : "이 내용으로 정리하기"}</button>
             <button className={styles.secondary} disabled={state.confirming} onClick={() => void controller.resume()}>다시 이야기하기</button>
           </div>}
         </div> : <>
