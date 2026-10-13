@@ -123,6 +123,23 @@ try {
         await visibleInViewport(link, page);
       }
     }
+    const panel = page.getByRole('complementary', { name: '미저장 대화', exact: true });
+    await panel.click({ position: { x: 8, y: 8 } });
+    assert.equal(await panel.isVisible(), true);
+    if (viewport.width > 320) {
+      const box = await input.boundingBox();
+      await input.click({ position: { x: box.width - 8, y: 8 } });
+    } else {
+      // The panel spans this viewport; the header remains outside it.
+      await page.mouse.click(viewport.width - 8, 32);
+    }
+    await panel.waitFor({ state: 'hidden', timeout: 1500 });
+    if (viewport.width > 320) assert.equal(await input.evaluate(el => document.activeElement === el), true);
+    await page.getByRole('button', { name: '미저장 대화 목록 펼치기' }).click();
+    await panel.waitFor();
+    await page.getByRole('button', { name: '미저장 대화 목록 접기' }).click();
+    await panel.waitFor({ state: 'hidden' });
+    await page.getByRole('button', { name: '미저장 대화 목록 펼치기' }).click();
     await page.getByRole('button', { name: '미저장 대화 목록 닫기' }).click();
     await page.screenshot({ path: new URL(`initial-${viewport.width}x${viewport.height}.png`, artifacts).pathname });
     for (const value of [' \n', '가'.repeat(101)]) { await input.fill(value); assert.equal(await send.isDisabled(), true); }

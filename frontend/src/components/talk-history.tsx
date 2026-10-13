@@ -12,6 +12,18 @@ export function TalkHistory({ currentId }: { currentId?: string }) {
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const toggle = useRef<HTMLButtonElement>(null);
+  const container = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    function closeOutside(event: PointerEvent) {
+      if (event.target instanceof Node && container.current && !container.current.contains(event.target)) {
+        // Keep focus on the outside control the user just selected.
+        setOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", closeOutside, true);
+    return () => document.removeEventListener("pointerdown", closeOutside, true);
+  }, [open]);
   useEffect(() => {
     if (!open) return;
     let active = true;
@@ -26,7 +38,7 @@ export function TalkHistory({ currentId }: { currentId?: string }) {
     if (!open) { setHistory(null); setError(false); }
     setOpen(!open);
   }
-  return <div className={styles.history} onKeyDown={(event) => { if (event.key === "Escape" && open) { event.preventDefault(); close(); } }}>
+  return <div ref={container} className={styles.history} onKeyDown={(event) => { if (event.key === "Escape" && open) { event.preventDefault(); close(); } }}>
     <button ref={toggle} className={styles.toggle} type="button" aria-expanded={open} aria-controls="talk-history" aria-label={open ? "미저장 대화 목록 접기" : "미저장 대화 목록 펼치기"} onClick={toggleHistory}>
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3" /><path d="M9 4v16M13 9h4M13 13h4" /></svg>
     </button>
