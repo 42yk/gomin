@@ -94,3 +94,9 @@ class ConfirmedSummaryHandoff(BaseModel):
     summary: SummaryData
     next_stage: Literal["image_generation"] = "image_generation"
     next_stage_status: Literal["not_started"] = "not_started"
+
+
+class UnsavedConversationData(BaseModel):
+    id: UUID
+    title: str
+    updated_at: datetime

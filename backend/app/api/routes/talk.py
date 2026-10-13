@@ -7,7 +7,7 @@ from app.auth.session import require_member
 from app.schemas.auth import MemberData
 from app.schemas.response import ApiSuccess
 from app.schemas.talk import (AcceptedMessage, ConfirmedSummaryHandoff, ConversationData,
-                              JobData, MessageInput, SummaryData, SummaryInput)
+                              JobData, MessageInput, SummaryData, SummaryInput, UnsavedConversationData)
 from app.talk.provider import TalkProvider, get_talk_provider
 from app.talk.repository import TalkRepository, get_talk_repository
 from app.talk.service import generate
@@ -27,6 +27,12 @@ def handoff(data: dict) -> ConfirmedSummaryHandoff:
 @router.post("", response_model=ApiSuccess[ConversationData], status_code=201)
 async def create(member: Member, repository: Repository):
     return ApiSuccess(data=ConversationData(**await repository.create(member.id)))
+
+
+@router.get("", response_model=ApiSuccess[list[UnsavedConversationData]])
+async def list_unsaved(member: Member, repository: Repository):
+    rows = await repository.list_unsaved(member.id)
+    return ApiSuccess(data=[UnsavedConversationData(**row) for row in rows])
 
 
 @router.get("/{conversation_id}", response_model=ApiSuccess[ConversationData])

@@ -255,3 +255,26 @@ class GenerationTests(unittest.IsolatedAsyncioTestCase):
         async with AsyncClient(transport=MockTransport(lambda _: self.fail("Unconfigured provider must not call HTTP"))) as http:
             await generate(repository, CodysseyTalkProvider(CodysseyClient(http, settings)), uuid4(), uuid4(), job)
         self.assertEqual(repository.complete.call_args.args[-1], "AI_NOT_CONFIGURED")
+
+
+class UnsavedTalkTests(unittest.IsolatedAsyncioTestCase):
+    asyncSetUp = TalkApiTests.asyncSetUp
+    asyncTearDown = TalkApiTests.asyncTearDown
+
+    async def test_unsaved_list_uses_session_owner_and_hides_internal_fields(self):
+        self.repository.list_unsaved = AsyncMock(return_value=[dict(
+            id=str(uuid4()), title="남은 고민", updated_at=now(), member_id=str(uuid4()))])
+        response = await self.client.get("/api/v1/conversations")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["data"][0]["title"], "남은 고민")
+        self.assertNotIn("member_id", response.json()["data"][0])
+        self.assertEqual(str(self.repository.list_unsaved.await_args.args[0]), self.member["id"])
+
+    async def test_unsaved_list_requires_auth_and_preserves_empty_and_failure(self):
+        self.repository.list_unsaved = AsyncMock(return_value=[])
+        response = await self.client.get("/api/v1/conversations")
+        self.assertEqual(response.json()["data"], [])
+        self.repository.list_unsaved.side_effect = AppError(503, "SERVICE_UNAVAILABLE", "조회 실패")
+        self.assertEqual((await self.client.get("/api/v1/conversations")).status_code, 503)
+        self.client.cookies.clear()
+        self.assertEqual((await self.client.get("/api/v1/conversations")).status_code, 401)

@@ -18,6 +18,7 @@ export type TalkState = {
   conversation: TalkConversation | null;
   draft: string;
   sending: boolean;
+  pendingMessage: TalkMessage | null;
   replyPending: boolean;
   summaryStatus: "idle" | "waiting" | "loading" | "ready" | "error";
   confirming: boolean;
@@ -44,7 +45,7 @@ function failureText(kind: "reply" | "summary", code?: string | null) {
 }
 
 export function createTalkController(api: TalkApi, { onCreated = (_id: string) => { void _id; }, onResumed = (_id: string) => { void _id; }, pollMs = 800 } = {}) {
-  let state: TalkState = { status: "ready", view: "conversation", conversation: null, draft: "", sending: false, replyPending: false,
+  let state: TalkState = { status: "ready", view: "conversation", conversation: null, draft: "", sending: false, pendingMessage: null, replyPending: false,
     summaryStatus: "idle", confirming: false, error: null, replyError: null, summaryError: null, confirmError: null, handoff: null };
   let disposed = false;
   let loadGeneration = 0;
@@ -109,11 +110,13 @@ export function createTalkController(api: TalkApi, { onCreated = (_id: string) =
     async send() {
       if (!canSend(state)) return;
       const content = state.draft;
+      const requestId = crypto.randomUUID();
+      const pendingMessage: TalkMessage = { id: requestId, conversation_id: state.conversation?.id ?? "", seq_no: (state.conversation?.messages.at(-1)?.seq_no ?? 0) + 1, role: "user", content, created_at: new Date().toISOString() };
       let acceptedDone = () => {};
       acceptanceTask = new Promise<void>((resolve) => { acceptedDone = resolve; });
       let thisReply: Promise<void> | null = null;
       // Clear only the submitted draft; later edits survive the normal waiting period.
-      patch({ draft: "", sending: true, replyError: null, error: null });
+      patch({ draft: "", sending: true, pendingMessage, replyError: null, error: null });
       try {
         let conversation = state.conversation;
         if (!conversation) {
@@ -121,13 +124,13 @@ export function createTalkController(api: TalkApi, { onCreated = (_id: string) =
           if (disposed) return;
           patch({ conversation }); onCreated(conversation.id);
         }
-        const accepted = await api.send(conversation.id, content, crypto.randomUUID());
+        const accepted = await api.send(conversation.id, content, requestId);
         if (disposed) return;
-        patch({ sending: false, replyPending: accepted.job.status === "running", conversation: {
+        patch({ sending: false, pendingMessage: null, replyPending: accepted.job.status === "running", conversation: {
           ...conversation, messages: [...conversation.messages, accepted.message], jobs: [...conversation.jobs, accepted.job],
         } });
         if (accepted.job.status === "running") { replyTask = watch(accepted.job); thisReply = replyTask; }
-      } catch { patch({ sending: false, replyPending: false, error: "메시지를 보내지 못했어요. 저장 여부를 확인할 수 없어요." }); }
+      } catch { patch({ sending: false, pendingMessage: null, replyPending: false, error: "메시지를 보내지 못했어요. 저장 여부를 확인할 수 없어요." }); }
       finally { acceptedDone(); }
       if (thisReply) await thisReply;
     },

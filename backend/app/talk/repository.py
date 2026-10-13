@@ -40,6 +40,9 @@ class TalkRepository:
         rows = await self.execute(self.database.table("conversations").insert({"member_id": str(member_id)}))
         return await self.snapshot(member_id, rows[0]["id"])
 
+    async def list_unsaved(self, member_id):
+        return await self.execute(self.database.rpc("gomin_talk_list_unsaved", {"p_member_id": str(member_id)}))
+
     async def snapshot(self, member_id, conversation_id):
         return await self.rpc("gomin_talk_snapshot", member_id, conversation_id)
 

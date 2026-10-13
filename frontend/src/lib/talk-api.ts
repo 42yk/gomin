@@ -1,9 +1,11 @@
+import type { UnsavedConversation } from "./talk-history";
 import { apiFetch } from "./api";
 import type { SummaryHandoff, TalkApi, TalkConversation, TalkJob, TalkMessage } from "./talk";
 
 const path = (id: string) => `/api/v1/conversations/${encodeURIComponent(id)}`;
 const post = (body?: unknown): RequestInit => ({ method: "POST", headers: { "Content-Type": "application/json" }, ...(body ? { body: JSON.stringify(body) } : {}) });
-export const talkApi: TalkApi = {
+export const talkApi = {
+  listUnsaved: () => apiFetch<UnsavedConversation[]>("/api/v1/conversations"),
   create: () => apiFetch<TalkConversation>("/api/v1/conversations", post()),
   read: (id) => apiFetch<TalkConversation>(path(id)),
   send: (id, content, client_message_id) => apiFetch<{ message: TalkMessage; job: TalkJob }>(`${path(id)}/messages`, post({ content, client_message_id })),
@@ -11,4 +13,4 @@ export const talkApi: TalkApi = {
   resume: (id) => apiFetch<TalkConversation>(`${path(id)}/resume`, post()),
   confirm: (id, summaryId) => apiFetch<SummaryHandoff>(`${path(id)}/summaries/${encodeURIComponent(summaryId)}/confirm`, post()),
   handoff: (id, summaryId) => apiFetch<SummaryHandoff>(`${path(id)}/summaries/${encodeURIComponent(summaryId)}/handoff`),
-};
+} satisfies TalkApi & { listUnsaved(): Promise<UnsavedConversation[]> };

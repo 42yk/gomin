@@ -15,6 +15,9 @@ async function fixture(page) {
   let sends = 0, summaries = 0, loggedIn = true, confirmations = 0, imageRequests = 0;
   let finishRegeneration;
   const savedResults = [];
+  let acceptSend, listError = false;
+  let holdSend = false;
+  let historyItems = null;
   const job = kind => {
     const value = { id: randomUUID(), kind, status: 'running', source_until_seq_no: conversation.messages.length, error_code: null };
     conversation.jobs.push(value); return value;
@@ -46,10 +49,11 @@ async function fixture(page) {
       const summary = conversation.summaries.find(s => s.id === path.split('/').at(-1) && s.confirmed_at);
       await (summary ? success(summary) : failure('NOT_FOUND', 404)); return;
     }
-    if (path === '/api/v1/conversations') { await success(conversation, 201); return; }
+    if (path === '/api/v1/conversations') { if (request.method() === 'GET' && listError) { await failure('SERVICE_UNAVAILABLE', 503); return; } await success(request.method() === 'GET' ? (historyItems ?? (conversation.messages.length ? [{ id: conversation.id, title: conversation.messages[0].content, updated_at: '2026-10-13T05:00:00Z' }] : [])) : conversation, request.method() === 'GET' ? 200 : 201); return; }
     if (path === `/api/v1/conversations/${conversation.id}`) { await success(conversation); return; }
     if (path.endsWith('/messages')) {
       sends++;
+      if (holdSend) { const ok = await new Promise(resolve => { acceptSend = resolve; }); if (!ok) { await failure('SERVICE_UNAVAILABLE', 503); return; } }
       const { content } = request.postDataJSON();
       const message = { id: randomUUID(), conversation_id: conversation.id, seq_no: conversation.messages.length+1, role: 'user', content, created_at: '2026-10-08T05:00:00Z' };
       conversation.messages.push(message); await success({ message, job: job('reply') }, 202); return;
@@ -75,7 +79,7 @@ async function fixture(page) {
       conversation.phase = 'reviewing'; conversation.summaries.push({ id: randomUUID(), conversation_id: conversation.id, version: conversation.summaries.length+1, source_until_seq_no: j.source_until_seq_no, current_feeling: '시험을 앞두고 불안하지만, 내 마음을 차분하게 들여다보고 싶어요.', main_concerns: conversation.messages.filter(m => m.role === 'user').map(m => m.content), emotion_tags: ['불안', '긴장', '막막함'], confirmed_at: null, created_at: '2026-10-08T05:02:00Z' });
     }
   }
-  return { conversation, reply, summary, savedResults, finishRegeneration(ok) { finishRegeneration(ok); }, calls: () => ({ sends, summaries, confirmations, imageRequests }), logout() { loggedIn = false; } };
+  return { conversation, reply, summary, savedResults, holdNextSend() { holdSend = true; }, acceptSend(ok) { holdSend = false; acceptSend(ok); }, setHistory(items) { historyItems = items; }, failHistory(value) { listError = value; }, finishRegeneration(ok) { finishRegeneration(ok); }, calls: () => ({ sends, summaries, confirmations, imageRequests }), logout() { loggedIn = false; } };
 }
 async function visibleInViewport(locator, page) {
   await locator.scrollIntoViewIfNeeded(); const box = await locator.boundingBox(); const size = page.viewportSize();
@@ -89,8 +93,55 @@ try {
     const errors = []; page.on('pageerror', e => errors.push(e.message));
     await page.goto(`${base}/talk`); const input = page.getByLabel('메시지', { exact: true });
     await input.waitFor(); const send = page.getByRole('button', { name: '메시지 전송' }), finish = page.getByRole('button', { name: /대화 마무리하기/ });
-    await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0));
-    assert.equal(await finish.isDisabled(), true);
+    await page.waitForFunction(() => [...document.images].filter(image => image.getClientRects().length > 0).every(image => image.complete && image.naturalWidth > 0));
+    assert.equal(await finish.count(), 0);
+    assert.equal(await input.evaluate(element => document.activeElement === element), true);
+    assert.equal(await input.evaluate(element => getComputedStyle(element.closest('form')).boxShadow), 'none');
+    assert.equal(await page.getByText('털어놓기', { exact: true }).count(), 0);
+    assert.equal(await page.getByRole('link', { name: '홈으로 돌아가기', exact: true }).count(), 0);
+    const toggleBox = await page.getByRole('button', { name: '미저장 대화 목록 펼치기' }).boundingBox();
+    const brandBox = await page.getByRole('link', { name: '고민일기 홈', exact: true }).boundingBox();
+    assert.ok(toggleBox.x + toggleBox.width <= brandBox.x);
+
+    assert.equal(await page.locator('#talk-input-hint').count(), 0);
+    const headingBox = await page.getByRole('heading', { name: /무엇이든 이야기해줘/ }).boundingBox();
+    const initialBox = await input.boundingBox();
+    assert.ok(initialBox.y > headingBox.y + headingBox.height && initialBox.y - headingBox.y - headingBox.height < 80);
+    if (viewport.width >= 768) assert.equal(await page.getByRole('link', { name: '홈으로 돌아가기', exact: true }).count(), 0);
+    await page.getByRole('button', { name: '미저장 대화 목록 펼치기' }).click();
+    await page.getByText('이야기를 불러오고 있어요…').waitFor({ state: 'hidden' });
+    assert.equal(await page.getByRole('navigation', { name: '미저장 대화 목록', exact: true }).count(), 0);
+    const sidebarBox = await page.getByRole('complementary', { name: '미저장 대화', exact: true }).boundingBox();
+    assert.equal(sidebarBox.x, 0);
+    assert.ok(sidebarBox.width <= viewport.width);
+    const menu = page.getByRole('navigation', { name: '서비스 메뉴', exact: true });
+    assert.equal(await menu.isVisible(), viewport.width < 768);
+    if (viewport.width < 768) {
+      for (const [name, href] of [['홈', '/'], ['가이드', '/guide'], ['컬렉션', '/collection']]) {
+        const link = menu.getByRole('link', { name, exact: true });
+        assert.equal(await link.getAttribute('href'), href);
+        await visibleInViewport(link, page);
+      }
+    }
+    const panel = page.getByRole('complementary', { name: '미저장 대화', exact: true });
+    await panel.click({ position: { x: 8, y: 8 } });
+    assert.equal(await panel.isVisible(), true);
+    if (viewport.width > 320) {
+      const box = await input.boundingBox();
+      await input.click({ position: { x: box.width - 8, y: 8 } });
+    } else {
+      // The panel spans this viewport; the header remains outside it.
+      await page.mouse.click(viewport.width - 8, 32);
+    }
+    await panel.waitFor({ state: 'hidden', timeout: 1500 });
+    if (viewport.width > 320) assert.equal(await input.evaluate(el => document.activeElement === el), true);
+    await page.getByRole('button', { name: '미저장 대화 목록 펼치기' }).click();
+    await panel.waitFor();
+    await page.getByRole('button', { name: '미저장 대화 목록 접기' }).click();
+    await panel.waitFor({ state: 'hidden' });
+    await page.getByRole('button', { name: '미저장 대화 목록 펼치기' }).click();
+    await page.getByRole('button', { name: '미저장 대화 목록 닫기' }).click();
+    await page.screenshot({ path: new URL(`initial-${viewport.width}x${viewport.height}.png`, artifacts).pathname });
     for (const value of [' \n', '가'.repeat(101)]) { await input.fill(value); assert.equal(await send.isDisabled(), true); }
     await input.fill('가'.repeat(98)+' \n'); assert.equal(await send.isEnabled(), true); assert.equal(await page.locator('#talk-count').innerText(), '100/100');
     await input.fill('시험과 진로 때문에 불안해요.');
@@ -101,6 +152,10 @@ try {
     } else { await input.press('Enter'); assert.equal(f.calls().sends, 0); await send.click(); }
     await page.getByText('모리가 네 이야기를 듣고 있어요… 입력은 계속할 수 있어요.').waitFor();
     assert.equal(await finish.isEnabled(), true);
+    await page.getByRole('button', { name: '미저장 대화 목록 펼치기' }).click();
+    await page.getByRole('navigation', { name: '미저장 대화 목록', exact: true }).waitFor();
+    assert.equal(await page.getByRole('link', { name: /시험과 진로 때문에 불안해요/ }).count(), 1);
+    await page.getByRole('button', { name: '미저장 대화 목록 닫기' }).click();
     await input.fill('대기 중에 적는 미전송 초안'); assert.equal(await send.isDisabled(), true);
     await input.press('Enter'); assert.equal(f.calls().sends, 1);
     await visibleInViewport(input, page); await visibleInViewport(page.locator('#talk-count'), page); await visibleInViewport(send, page);
@@ -112,13 +167,16 @@ try {
     await page.screenshot({ path: new URL(`wrapup-${viewport.width}x${viewport.height}.png`, artifacts).pathname.replace(/^\/(\w:)/, '$1') });
     f.summary(); await page.getByRole('heading', { name: '지금까지의 고민 요약' }).waitFor();
     assert.equal(await page.getByRole('heading', { name: '지금의 마음' }).count(), 1);
+    assert.equal(await page.getByRole('button', { name: '같은 대화로 돌아가기' }).count(), 0);
+
     assert.equal(await page.getByRole('heading', { name: '주요 고민' }).count(), 1);
     assert.equal(await page.getByRole('heading', { name: '자주 느끼는 감정' }).count(), 1);
     assert.equal(await page.getByText('대기 중에 적는 미전송 초안').count(), 0);
     const confirm = page.getByRole('button', { name: '이 내용으로 정리하기' });
     await visibleInViewport(confirm, page);
     await page.screenshot({ path: new URL(`summary-${viewport.width}x${viewport.height}.png`, artifacts).pathname.replace(/^\/(\w:)/, '$1') });
-    await page.getByRole('button', { name: '같은 대화로 돌아가기' }).click(); await input.waitFor();
+    await page.getByRole('button', { name: '다시 이야기하기', exact: true }).click();
+    await input.waitFor();
     assert.ok((await input.inputValue()).includes('대기 중에 적는 미전송 초안'));
     await input.fill('추가로 가족과의 관계도 고민이에요.'); await send.click(); await waitFor(() => f.calls().sends === 2, page); f.reply();
     await page.getByText('모리가 네 이야기를 듣고 있어요… 입력은 계속할 수 있어요.').waitFor({ state: 'hidden' });
@@ -161,7 +219,7 @@ try {
     await page.goto(`${base}/talk/${f.conversation.id}/handoff/${summaryId}`);
     await page.getByRole('link', { name: '확정 요약 보기' }).click(); await page.waitForURL('**/handoff/**'); await page.reload();
     await page.getByText('요약을 확정했어요. 이 내용으로 그림일기를 만들 수 있어요.').waitFor();
-    await page.getByRole('button', { name: '같은 대화로 돌아가기' }).click(); await page.waitForURL(`**/talk/${f.conversation.id}`);
+    await page.getByRole('button', { name: '다시 이야기하기', exact: true }).click(); await page.waitForURL(`**/talk/${f.conversation.id}`);
     await input.waitFor(); await input.fill('재접속 시 복원되면 안 되는 초안');
     // Return to the same persisted conversation URL, then reload.
     await page.goto(`${base}/talk/${f.conversation.id}`); await input.waitFor();
@@ -179,6 +237,51 @@ try {
   assert.equal(await page.getByRole('button', { name: /재시도|다시 시도/ }).count(), 0);
   assert.equal(await page.getByRole('button', { name: '이 내용으로 정리하기' }).count(), 0);
   results.push({ failureStates: 'passed' }); await page.close();
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 320 }]) {
+    const page = await browser.newPage({ viewport, timezoneId: 'Asia/Seoul' }); const f = await fixture(page);
+    await page.goto(`${base}/talk`); const input = page.getByLabel('메시지', { exact: true }); await input.waitFor();
+    await visibleInViewport(input, page); await visibleInViewport(page.getByRole('button', { name: '메시지 전송' }), page);
+    f.holdNextSend(); await input.fill('전송 지연 검증'); await page.getByRole('button', { name: '메시지 전송' }).click();
+    await page.getByText('보내는 중…', { exact: true }).waitFor();
+    assert.equal(await page.getByText('전송 지연 검증', { exact: true }).count(), 1);
+    assert.equal(await input.inputValue(), '');
+    assert.equal(await page.getByRole('button', { name: /대화 마무리하기/ }).isDisabled(), true);
+    const sendBox = await input.boundingBox(); assert.ok(sendBox.y > viewport.height / 2);
+    await input.fill('새로 작성한 초안'); f.acceptSend(false);
+    await page.getByText('메시지를 보내지 못했어요. 저장 여부를 확인할 수 없어요.').waitFor();
+    assert.equal(await page.getByText('전송 지연 검증', { exact: true }).count(), 0);
+    assert.equal(await input.inputValue(), '새로 작성한 초안');
+    f.holdNextSend(); await input.fill('저장 성공 검증'); await page.getByRole('button', { name: '메시지 전송' }).click();
+    await page.getByText('보내는 중…', { exact: true }).waitFor(); f.acceptSend(true);
+    await page.getByText('보내는 중…', { exact: true }).waitFor({ state: 'hidden' });
+    assert.equal(await page.getByText('저장 성공 검증', { exact: true }).count(), 1); f.reply();
+    await page.getByText('모리가 네 이야기를 듣고 있어요… 입력은 계속할 수 있어요.').waitFor({ state: 'hidden' });
+    await page.getByRole('button', { name: '미저장 대화 목록 펼치기' }).click();
+    await page.getByRole('link', { name: '새 이야기 시작하기' }).click();
+    await page.waitForURL(`${base}/talk`); await page.waitForLoadState('networkidle');
+    assert.equal(await page.getByText('저장 성공 검증', { exact: true }).count(), 0);
+    assert.equal(await input.inputValue(), '');
+    f.setHistory([
+      { id: f.conversation.id, title: '오늘의 미저장 이야기', updated_at: '2026-10-13T02:00:00Z' },
+      { id: randomUUID(), title: '어제의 미저장 이야기', updated_at: '2026-10-12T04:00:00Z' },
+    ]);
+    await page.getByRole('button', { name: '미저장 대화 목록 펼치기' }).click();
+    const list = page.getByRole('navigation', { name: '미저장 대화 목록', exact: true }); await list.waitFor();
+    assert.deepEqual(await list.locator('h3').allTextContents(), ['2026년 10월 13일', '2026년 10월 12일']);
+    await page.screenshot({ path: new URL(`history-${viewport.width}x${viewport.height}.png`, artifacts).pathname });
+    await page.getByRole('link', { name: '오늘의 미저장 이야기', exact: true }).click();
+    await page.waitForURL(`**/talk/${f.conversation.id}`); await page.waitForLoadState("networkidle"); await input.waitFor();
+    await page.getByText('저장 성공 검증', { exact: true }).waitFor();
+    assert.equal(await page.getByText('저장 성공 검증', { exact: true }).count(), 1);
+    assert.equal(await list.count(), 0);
+    f.failHistory(true); await page.getByRole('button', { name: '미저장 대화 목록 펼치기' }).click();
+    await page.getByText('대화 목록을 불러오지 못했어요.').waitFor();
+    f.failHistory(false); await page.getByRole('button', { name: '다시 불러오기' }).click(); await list.waitFor();
+    await page.getByRole('link', { name: '오늘의 미저장 이야기', exact: true }).focus(); await page.keyboard.press('Escape');
+    assert.equal(await list.count(), 0);
+    assert.equal(await page.getByRole('button', { name: '미저장 대화 목록 펼치기' }).evaluate(el => document.activeElement === el), true);
+    results.push({ optimisticSendAndHistory: viewport, result: 'passed' }); await page.close();
+  }
   const anonymous = await browser.newPage(); const anonymousFixture = await fixture(anonymous); anonymousFixture.logout();
   await anonymous.goto(`${base}/talk/${anonymousFixture.conversation.id}`); await anonymous.waitForURL('**/login?**');
   assert.equal(await anonymous.getByLabel('메시지', { exact: true }).count(), 0); results.push({ authGuard: 'passed' }); await anonymous.close();

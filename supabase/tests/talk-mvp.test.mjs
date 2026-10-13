@@ -157,3 +157,44 @@ test('anon and authenticated cannot call any privileged conversation command', a
     finally { await db.exec('reset role'); }
   }
 });
+
+test('unsaved list excludes empty, foreign and collected conversations, keeping generated but unsaved ones', async () => {
+  const empty = await context(), other = await context();
+  const [a] = await q('insert into conversations(member_id) values($1) returning *', [empty.member_id]);
+  const [b] = await q('insert into conversations(member_id) values($1) returning *', [empty.member_id]);
+  const [saved] = await q('insert into conversations(member_id) values($1) returning *', [empty.member_id]);
+  for (const c of [a, b, saved, other]) {
+    const accepted = await send(c, c.id === a.id ? '먼저 남긴 고민' : '다른 고민');
+    await complete(c, accepted.job, { content: '응답' });
+  }
+  async function image(c) {
+    const job = await summarize(c); await complete(c, job.job, output);
+    const summary = (await snapshot(c)).summaries[0]; await confirm(c, summary.id);
+    return db.transaction(async tx => {
+      const [imageJob] = (await tx.query(`insert into generation_jobs(member_id,conversation_id,kind,input_summary_id,
+      idempotency_key,request_fingerprint,status,finished_at) values($1,$2,'image',$3,$4,'fixture','succeeded',clock_timestamp()) returning id`,
+      [c.member_id, c.id, summary.id, randomUUID()])).rows;
+      const [result] = (await tx.query(`insert into diary_results(member_id,summary_id,generation_job_id,title,
+      encouragement_text,image_bucket,image_object_key) values($1,$2,$3,'제목','위로','test',$4) returning id`,
+      [c.member_id, summary.id, imageJob.id, randomUUID()])).rows;
+      return result.id;
+    });
+  }
+  await image(b);
+  const result = await image(saved);
+  await q('insert into collection_entries(member_id,source_result_id) values($1,$2)', [saved.member_id, result]);
+  await q("update conversations set updated_at='2026-10-12T10:00:00Z' where id=$1", [a.id]);
+  await db.exec('set role service_role');
+  try {
+    const list = await rpc('gomin_talk_list_unsaved', [empty.member_id]);
+    assert.deepEqual(new Set(list.map(c => c.id)), new Set([a.id, b.id]));
+    assert.equal(list.find(c => c.id === a.id).title, '먼저 남긴 고민');
+    assert.ok(list[0].updated_at >= list[1].updated_at);
+    assert.deepEqual(await rpc('gomin_talk_list_unsaved', [randomUUID()]), []);
+  } finally { await db.exec('reset role'); }
+  for (const role of ['anon', 'authenticated']) {
+    await db.exec(`set role ${role}`);
+    try { await reject(rpc('gomin_talk_list_unsaved', [empty.member_id]), 'permission denied'); }
+    finally { await db.exec('reset role'); }
+  }
+});
