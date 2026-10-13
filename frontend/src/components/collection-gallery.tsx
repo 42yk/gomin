@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { PageShell } from "@/components/page-shell";
 import { useAuth } from "@/providers/auth-provider";
-import { useUiStore } from "@/providers/ui-store-provider";
 import {
   collectionCategories, COLLECTION_PAGE_SIZE, createCollectionController,
   visibleCollectionItems, type CollectionDetail, type CollectionImage,
@@ -50,7 +49,6 @@ function AssetIcon({ name }: { name: string }) {
 }
 
 function DetailContent({ detail }: { detail: CollectionDetail }) {
-  const showToast = useUiStore((state) => state.showToast);
   return <>
     <header className={styles.detailHeading}>
       <time dateTime={detail.date}>{formatDate(detail.date, true)}</time>
@@ -68,9 +66,6 @@ function DetailContent({ detail }: { detail: CollectionDetail }) {
         <AssetIcon name="cloud" /><div><h3>자주 느끼는 감정</h3><ul className={styles.emotionTags}>{detail.emotions.map((text) => <li key={text}>{text}</li>)}</ul></div>
       </section>
     </div>
-    <button className={styles.continueButton} type="button" onClick={() => showToast("이전 이야기 이어 보기는 아직 준비 중이에요.")}>
-      <span className={styles.editIcon}><AssetIcon name="edit" /></span>이 이야기 이어서 보기
-    </button>
   </>;
 }
 
