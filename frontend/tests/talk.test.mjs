@@ -127,3 +127,30 @@ test('disposal and development effect replay ignore stale account data', async (
   const before = c.getSnapshot(); resolve(f.snapshot()); await loading; assert.equal(c.getSnapshot(), before);
   c.activate(); f.api.read = async () => f.snapshot(); await c.load('conversation-a'); assert.equal(c.getSnapshot().status, 'ready'); c.dispose();
 });
+
+test('first send displays a pending message before creation without enabling finish', async () => {
+  const f = fixture(), c = f.controller;
+  let created; f.api.create = () => new Promise(resolve => { created = resolve; });
+  c.setDraft('즉시 보이는 원문'); const sending = c.send();
+  assert.equal(c.getSnapshot().pendingMessage?.content, '즉시 보이는 원문');
+  assert.equal(c.getSnapshot().draft, '');
+  assert.equal(canFinish(c.getSnapshot()), false);
+  assert.equal(canSend(c.getSnapshot()), false);
+  created(f.snapshot()); await until(() => c.getSnapshot().replyPending);
+  assert.equal(c.getSnapshot().pendingMessage, null);
+  assert.equal(c.getSnapshot().conversation.messages.filter(m => m.content === '즉시 보이는 원문').length, 1);
+  f.reply(); await sending; c.dispose();
+});
+
+test('failed optimistic send removes only pending display and preserves later edits', async () => {
+  const f = fixture(), c = f.controller;
+  await c.load('conversation-a');
+  let reject; f.api.send = () => new Promise((_, no) => { reject = no; });
+  c.setDraft('실패 원문'); const sending = c.send();
+  assert.equal(c.getSnapshot().pendingMessage?.content, '실패 원문');
+  c.setDraft('새 초안'); reject(new Error('offline')); await sending;
+  assert.equal(c.getSnapshot().pendingMessage, null);
+  assert.equal(c.getSnapshot().conversation.messages.length, 0);
+  assert.equal(c.getSnapshot().draft, '새 초안');
+  assert.ok(c.getSnapshot().error); c.dispose();
+});

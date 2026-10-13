@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
+import { TalkHistory } from "@/components/talk-history";
 import { PageShell } from "@/components/page-shell";
 import { SummaryDiary } from "@/components/summary-diary";
 import { useAuth } from "@/providers/auth-provider";
@@ -54,7 +55,7 @@ export function TalkSession({ conversationId, summaryId, api = talkApi, onConfir
   useEffect(() => {
     const element = transcript.current;
     if (element) element.scrollTop = element.scrollHeight;
-  }, [state.conversation?.messages.length, state.replyPending]);
+  }, [state.conversation?.messages.length, state.pendingMessage, state.replyPending]);
   useEffect(() => {
     if (state.handoff && delivered.current !== state.handoff.summary_id) {
       delivered.current = state.handoff.summary_id;
@@ -64,6 +65,8 @@ export function TalkSession({ conversationId, summaryId, api = talkApi, onConfir
   const busySummary = state.summaryStatus === "waiting" || state.summaryStatus === "loading";
   const summary = state.handoff?.summary ?? state.conversation?.summaries.at(-1);
   const count = messageLength(state.draft);
+  const messages = [...(state.conversation?.messages ?? []), ...(state.pendingMessage ? [state.pendingMessage] : [])];
+  const initial = state.view === "conversation" && messages.length === 0;
   async function confirmSummary() {
     await controller.confirm();
     const handoff = controller.getSnapshot().handoff;
@@ -76,13 +79,8 @@ export function TalkSession({ conversationId, summaryId, api = talkApi, onConfir
     }
   }
   if (diarySummaryId) return <SummaryDiary summaryId={diarySummaryId} />;
-  return <PageShell page="talk" contentClassName={styles.content}>
-    <div className={styles.surface}>
-      <div className={styles.topbar}>
-        {state.view === "conversation" ? <Link className={styles.back} href="/" aria-label="홈으로 돌아가기"><Image src="/images/navigation/back.svg" width={24} height={24} alt="" /></Link>
-          : <button className={styles.back} type="button" aria-label="같은 대화로 돌아가기" disabled={busySummary || state.confirming} onClick={() => void controller.resume()}><Image src="/images/navigation/back.svg" width={24} height={24} alt="" /></button>}
-        <span>{state.view === "handoff" ? "확정 요약" : "털어놓기"}</span>
-      </div>
+  return <PageShell page="talk" contentClassName={styles.content} headerAction={<TalkHistory currentId={state.conversation?.id ?? conversationId} />}>
+    <div className={`${styles.surface} ${initial ? styles.initial : ""}`}>
       {state.status === "loading" ? <p className={styles.notice} role="status">저장된 대화를 불러오고 있어요.</p>
         : state.status === "error" ? <p className={styles.error} role="alert">{state.error}</p>
         : state.view === "summary" || state.view === "handoff" ? <div className={styles.summary}>
@@ -90,16 +88,16 @@ export function TalkSession({ conversationId, summaryId, api = talkApi, onConfir
           {summary ? <><p className={styles.version}>요약 {summary.version} · 저장 원문 {summary.source_until_seq_no}번째 메시지까지</p><SummarySections summary={summary} /></> : null}
           {state.confirmError ? <p className={styles.error} role="alert">{state.confirmError}</p> : null}
           {state.error ? <p className={styles.error} role="alert">{state.error}</p> : null}
-          {state.handoff ? <ConfirmedSummaryBoundary handoff={state.handoff} /> : <div className={styles.actions}>
+          {state.handoff ? <><ConfirmedSummaryBoundary handoff={state.handoff} /><div className={styles.actions}><button className={styles.secondary} onClick={() => void controller.resume()}>다시 이야기하기</button></div></> : <div className={styles.actions}>
             <button className={styles.primary} disabled={state.confirming} onClick={() => void confirmSummary()}>{state.confirming ? "요약을 확정하고 있어요…" : "이 내용으로 정리하기"}</button>
             <button className={styles.secondary} disabled={state.confirming} onClick={() => void controller.resume()}>다시 이야기하기</button>
           </div>}
         </div> : <>
           <div className={styles.transcript} ref={transcript} aria-label="저장된 대화">
             <div className={styles.heading}><Image src="/images/navigation/profile-character.png" width={96} height={80} alt="모리" /><h1>무엇이든 이야기해줘,<br />지금 네 마음을 들을게.</h1></div>
-            <ol className={styles.messages}>{state.conversation?.messages.map((message) => <li key={message.id} className={message.role === "user" ? styles.user : styles.assistant}>
+            <ol className={styles.messages}>{messages.map((message) => <li key={message.id} aria-busy={message === state.pendingMessage} className={message.role === "user" ? styles.user : styles.assistant}>
               {message.role === "assistant" ? <Image src="/images/navigation/profile-character.png" width={48} height={40} alt="" /> : null}
-              <div><span className={styles.speaker}>{message.role === "user" ? "나" : "모리"}</span><p className={styles.bubble}>{message.content}</p><time dateTime={message.created_at}>{new Intl.DateTimeFormat("ko-KR", { dateStyle: "short", timeStyle: "short" }).format(new Date(message.created_at))}</time></div>
+              <div><span className={styles.speaker}>{message.role === "user" ? "나" : "모리"}</span><p className={styles.bubble}>{message.content}</p>{message === state.pendingMessage ? <span className={styles.pending} role="status">보내는 중…</span> : <time dateTime={message.created_at}>{new Intl.DateTimeFormat("ko-KR", { dateStyle: "short", timeStyle: "short" }).format(new Date(message.created_at))}</time>}</div>
             </li>)}</ol>
             {state.replyPending ? <p className={styles.notice} role="status">모리가 네 이야기를 듣고 있어요… 입력은 계속할 수 있어요.</p> : null}
             {state.replyError ? <p className={styles.error} role="alert">{state.replyError}</p> : null}
@@ -116,9 +114,9 @@ export function TalkSession({ conversationId, summaryId, api = talkApi, onConfir
           {state.error ? <p className={styles.error} role="alert">{state.error}</p> : null}
           <form className={styles.composer} onSubmit={(event) => { event.preventDefault(); void controller.send(); }}>
             <label className={styles.inputLabel} htmlFor="talk-message">메시지</label>
-            <textarea id="talk-message" aria-describedby="talk-count talk-input-hint" aria-invalid={count > 100} value={state.draft} placeholder="메시지를 입력하세요…" rows={2} onChange={(event) => controller.setDraft(event.target.value)} onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }} onKeyDown={onKeyDown} />
+            <textarea id="talk-message" autoFocus aria-describedby={busySummary ? "talk-count talk-input-hint" : "talk-count"} aria-invalid={count > 100} value={state.draft} placeholder="메시지를 입력하세요…" rows={2} onChange={(event) => controller.setDraft(event.target.value)} onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }} onKeyDown={onKeyDown} />
             <div className={styles.composerFooter}><span id="talk-count" className={count > 100 ? styles.error : ""}>{count}/100</span><button className={styles.send} type="submit" disabled={!canSend(state)} aria-label="메시지 전송">↑</button></div>
-            <p id="talk-input-hint" className={styles.hint}>{busySummary ? "작성 중인 내용은 요약에 포함되지 않아요." : <><span className={styles.desktopHint}>Enter 전송 · Shift+Enter 줄바꿈</span><span className={styles.mobileHint}>Enter 줄바꿈 · 버튼으로 전송</span></>}</p>
+            {busySummary ? <p id="talk-input-hint" className={styles.hint}>작성 중인 내용은 요약에 포함되지 않아요.</p> : null}
           </form>
         </>}
     </div>
