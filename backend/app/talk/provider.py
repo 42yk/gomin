@@ -1,6 +1,7 @@
 """Conversation adapter for the shared REST text client."""
 
 import json
+import logging
 from typing import Annotated, Protocol
 
 from fastapi import Depends
@@ -10,6 +11,9 @@ from app.ai.client import AIConfigurationError, AIRequestError, CodysseyClient
 from app.ai.dependencies import get_ai_client
 from app.core.errors import AppError
 from app.schemas.talk import SummaryContent
+
+
+logger = logging.getLogger(__name__)
 
 
 class TalkProvider(Protocol):
@@ -59,6 +63,8 @@ class CodysseyTalkProvider:
         except AIConfigurationError:
             raise AppError(503, "AI_NOT_CONFIGURED", "대화 생성 설정을 확인해 주세요.") from None
         except AIRequestError as error:
+            # Keep credentials, transcript, and provider response bodies out of logs.
+            logger.warning("Talk AI request failed: code=%s status=%s", error.code, error.status_code)
             if error.code == "TIMEOUT":
                 raise AppError(504, "AI_TIMEOUT", "대화 생성 응답을 기다리지 못했어요.") from None
             raise AppError(502, "AI_FAILED", "대화 생성을 완료하지 못했어요.") from None
