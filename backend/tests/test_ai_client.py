@@ -169,21 +169,24 @@ class AIClientTests(unittest.IsolatedAsyncioTestCase):
             request = client.build_image_request("요약의 그림")
         self.assertEqual(request.url.path, "/v1beta/models/gemini-2.5-flash-image:generateContent")
 
-    async def test_image_request_uses_photorealistic_landscape_and_illustrated_mori_without_text(self):
+    async def test_image_request_follows_scene_and_preserves_illustrated_mori_without_text(self):
         async with httpx.AsyncClient() as http_client:
             client = GeminiClient(http_client, settings(gemini_api_key="test-only"))
             request = client.build_image_request("모리가 저녁 창가에서 쉬는 장면")
         parts = json.loads(request.content)["contents"][0]["parts"]
         instructions = parts[0]["text"]
-        for requirement in ("natural landscape as the default", "from behind", "from the front", "full-body shot is optional",
-                            "photorealistic natural landscape", "real landscape photograph", "For Mori only", "do not photorealistically redesign Mori",
-                            "character identity guide", "quietly poetic", "forced smile", "delicate watercolor texture", "contact shadows",
-                            "gentle rim light", "intimate composition", "not as a sticker", "titles, dates, borders, film strips, UI",
+        for requirement in ("specified setting, action, clothing and expression", "natural, indoor or urban settings",
+                            "Do not default to sadness", "do not copy its expression", "full-body shot is optional",
+                            "photorealistic setting", "real photograph", "For Mori only", "do not photorealistically redesign Mori",
+                            "character identity guide", "forced smile", "delicate watercolor texture", "contact shadows",
+                            "face and gesture readable", "not as a sticker", "titles, dates, borders, film strips, UI",
                             "Do not reserve blank space for a message"):
             self.assertIn(requirement, instructions)
         self.assertNotIn("40-50%", instructions)
         self.assertNotIn("central 60%", instructions)
         self.assertNotIn("added by the application", instructions)
+        self.assertNotIn("natural landscape as the default", instructions)
+        self.assertNotIn("lowered gaze", instructions)
         self.assertEqual(parts[1]["inlineData"]["mimeType"], "image/png")
         self.assertEqual(parts[2]["text"], "모리가 저녁 창가에서 쉬는 장면")
 
