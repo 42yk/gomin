@@ -150,7 +150,23 @@ try {
       await input.dispatchEvent('compositionstart'); await input.press('Enter'); assert.equal(f.calls().sends, 0);
       await input.dispatchEvent('compositionend'); await input.press('Enter');
     } else { await input.press('Enter'); assert.equal(f.calls().sends, 0); await send.click(); }
-    await page.getByText('모리가 네 이야기를 듣고 있어요… 입력은 계속할 수 있어요.').waitFor();
+    await page.getByRole('status', { name: '모리 답변 입력 중' }).waitFor();
+    const typing = page.getByRole('status', { name: '모리 답변 입력 중' });
+    const frames = await typing.evaluate(element => {
+      const dots = [...element.querySelectorAll('span > span')];
+      const animations = dots.map(dot => dot.getAnimations()[0]);
+      animations.forEach(animation => animation.pause());
+      const frames = [0, 550, 1050, 1550].map(time => {
+        animations.forEach(animation => { animation.currentTime = time; });
+        return dots.filter(dot => getComputedStyle(dot).opacity === '1').length;
+      });
+      animations.forEach(animation => animation.play());
+      return frames;
+    });
+    assert.deepEqual(frames, [1, 2, 3, 1]);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    assert.equal(await typing.evaluate(element => element.getAnimations({ subtree: true }).length), 0);
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
     assert.equal(await finish.isEnabled(), true);
     await page.getByRole('button', { name: '미저장 대화 목록 펼치기' }).click();
     await page.getByRole('navigation', { name: '미저장 대화 목록', exact: true }).waitFor();
@@ -179,7 +195,7 @@ try {
     await input.waitFor();
     assert.ok((await input.inputValue()).includes('대기 중에 적는 미전송 초안'));
     await input.fill('추가로 가족과의 관계도 고민이에요.'); await send.click(); await waitFor(() => f.calls().sends === 2, page); f.reply();
-    await page.getByText('모리가 네 이야기를 듣고 있어요… 입력은 계속할 수 있어요.').waitFor({ state: 'hidden' });
+    await page.getByRole('status', { name: '모리 답변 입력 중' }).waitFor({ state: 'hidden' });
     await finish.click(); await waitFor(() => f.calls().summaries === 2, page); f.summary();
     await confirm.waitFor();
     const conversationUrl = page.url();
@@ -255,7 +271,7 @@ try {
     await page.getByText('보내는 중…', { exact: true }).waitFor(); f.acceptSend(true);
     await page.getByText('보내는 중…', { exact: true }).waitFor({ state: 'hidden' });
     assert.equal(await page.getByText('저장 성공 검증', { exact: true }).count(), 1); f.reply();
-    await page.getByText('모리가 네 이야기를 듣고 있어요… 입력은 계속할 수 있어요.').waitFor({ state: 'hidden' });
+    await page.getByRole('status', { name: '모리 답변 입력 중' }).waitFor({ state: 'hidden' });
     await page.getByRole('button', { name: '미저장 대화 목록 펼치기' }).click();
     await page.getByRole('link', { name: '새 이야기 시작하기' }).click();
     await page.waitForURL(`${base}/talk`); await page.waitForLoadState('networkidle');
