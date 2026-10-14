@@ -77,9 +77,10 @@ class CodysseyTalkProvider:
 
     async def reply(self, messages: list[dict]) -> str:
         content = await self.text([{"role": "system", "content": REPLY_PROMPT}, *stored_messages(messages)])
-        if not content.strip() or len(content) > 8000:
+        plain_content = content.replace("**", " ")
+        if not plain_content.strip() or len(content) > 8000:
             raise AppError(502, "AI_FAILED", "모리 응답을 완료하지 못했어요.")
-        return content
+        return plain_content
 
     async def summarize(self, messages: list[dict]) -> SummaryContent:
         content = await self.text([
