@@ -98,8 +98,16 @@ export function TalkSession({ conversationId, summaryId, api = talkApi, onConfir
             <ol className={styles.messages}>{messages.map((message) => <li key={message.id} aria-busy={message === state.pendingMessage} className={message.role === "user" ? styles.user : styles.assistant}>
               {message.role === "assistant" ? <Image src="/images/navigation/profile-character.png" width={48} height={40} alt="" /> : null}
               <div><span className={styles.speaker}>{message.role === "user" ? "나" : "모리"}</span><p className={styles.bubble}>{message.content}</p>{message === state.pendingMessage ? <span className={styles.pending} role="status">보내는 중…</span> : <time dateTime={message.created_at}>{new Intl.DateTimeFormat("ko-KR", { dateStyle: "short", timeStyle: "short" }).format(new Date(message.created_at))}</time>}</div>
-            </li>)}</ol>
-            {state.replyPending ? <p className={styles.notice} role="status">모리가 네 이야기를 듣고 있어요… 입력은 계속할 수 있어요.</p> : null}
+            </li>)}
+              {state.replyPending ? <li className={styles.assistant}>
+                <Image src="/images/navigation/profile-character.png" width={48} height={40} alt="" />
+                <div><span className={styles.speaker}>모리</span>
+                  <p className={`${styles.bubble} ${styles.typing}`} role="status" aria-label="모리 답변 입력 중">
+                    <span aria-hidden="true"><span>.</span><span>.</span><span>.</span></span>
+                  </p>
+                </div>
+              </li> : null}
+            </ol>
             {state.replyError ? <p className={styles.error} role="alert">{state.replyError}</p> : null}
           </div>
           <div className={styles.wrapup}>

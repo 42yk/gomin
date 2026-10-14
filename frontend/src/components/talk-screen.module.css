@@ -80,3 +80,13 @@
 .initial .wrapup { display: none; }
 .initial .heading { padding-top: clamp(20px, 10dvh, 100px); }
 @media (max-height: 500px) { .initial .heading { padding-top: 4px; } }
+
+.typing { width: fit-content; min-width: 76px; }
+.typing > span { display: inline-flex; gap: 3px; }
+.typing > span > span { animation: typing-dot 1.5s step-end infinite; }
+.typing > span > span:nth-child(2) { animation-name: typing-dot-two; }
+.typing > span > span:nth-child(3) { animation-name: typing-dot-three; }
+@keyframes typing-dot { 0%, 100% { opacity: 1; } }
+@keyframes typing-dot-two { 0%, 100% { opacity: 0; } 33.333% { opacity: 1; } }
+@keyframes typing-dot-three { 0%, 100% { opacity: 0; } 66.667% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .typing > span > span { animation: none; opacity: 1; } }

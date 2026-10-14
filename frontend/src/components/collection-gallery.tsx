@@ -179,10 +179,8 @@ function MemberCollection({ memberId }: { memberId: string }) {
                   aria-label={`${formatDate(item.date)} ${item.title} 상세 보기`} onClick={(event) => open(item.id, event.currentTarget)}>
                   <RecordImage image={item.image} /><time dateTime={item.date}>{formatDate(item.date)}</time><span>{item.title}</span>
                 </button>)}</div>
-                <p className={styles.mobileClosing}>모든 날들이<br />특별한 장면이 되는 곳. — 고민일기 ♡</p>
               </section>
             </>}
-      <footer className={styles.closing}><p>오늘도<br />좋은 하루가 되기를.</p><p>모든 감정이 특별한 장면이 되는 곳.<br />— 고민일기 ♡</p></footer>
     </div>
     {selected && (isMobile
       ? <article className={styles.mobileDetail} aria-label="고민일기 상세">
@@ -196,8 +194,8 @@ function MemberCollection({ memberId }: { memberId: string }) {
         {state.detail && <div className={styles.desktopImage}>
           <RecordImage image={state.detail.image} hero />
         </div>}
+        <button className={styles.closeButton} type="button" aria-label="상세 닫기" onClick={close} autoFocus><AssetIcon name="close" /></button>
         <div className={styles.desktopSummary}>
-          <button className={styles.closeButton} type="button" aria-label="상세 닫기" onClick={close} autoFocus><AssetIcon name="close" /></button>
           {detailBody}
         </div>
       </dialog>)}

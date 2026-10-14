@@ -107,3 +107,19 @@ class TalkProviderTests(unittest.IsolatedAsyncioTestCase):
                     with self.assertRaises(AppError) as raised:
                         await provider.reply([dict(role="user", content="저장 고민")])
                     self.assertEqual(raised.exception.code, "AI_FAILED")
+
+    async def test_provider_failure_logs_only_code_and_status_without_secrets_or_transcript(self):
+        for status in (401, 403, 404, 429, 500):
+            with self.subTest(status=status):
+                async with httpx.AsyncClient(transport=httpx.MockTransport(
+                    lambda _: httpx.Response(status, text="private-provider-body")
+                )) as http:
+                    provider = CodysseyTalkProvider(CodysseyClient(http, self.settings()))
+                    with self.assertLogs("app.talk.provider", level="WARNING") as logs:
+                        with self.assertRaises(AppError):
+                            await provider.reply([dict(role="user", content="private-conversation")])
+                output = "\n".join(logs.output)
+                self.assertIn(f"status={status}", output)
+                self.assertIn("RATE_LIMITED" if status == 429 else "PROVIDER_ERROR", output)
+                for private in ("private-provider-body", "private-conversation", "test-placeholder", "Bearer"):
+                    self.assertNotIn(private, output)
