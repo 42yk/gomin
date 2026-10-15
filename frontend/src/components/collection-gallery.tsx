@@ -34,11 +34,21 @@ const formatDate = (date: string, weekday = false) => {
   return weekday ? `${label} (${week})` : label;
 };
 
-function RecordImage({ image, hero = false }: { image: CollectionImage; hero?: boolean }) {
+function RecordImage({ image, hero = false, onError }: { image: CollectionImage; hero?: boolean; onError?: () => void }) {
   return <div className={`${styles.photo} ${hero ? styles.heroPhoto : ""}`}>
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={image.src} alt="" />
+    <img src={image.src} alt="" onError={onError} />
   </div>;
+}
+
+function DetailImage({ preview, refreshed, loading }: {
+  preview?: CollectionImage; refreshed?: CollectionImage; loading: boolean;
+}) {
+  const [failedSources, setFailedSources] = useState<string[]>([]);
+  const image = [preview, refreshed].find((candidate) => candidate && !failedSources.includes(candidate.src));
+  if (image) return <RecordImage image={image} hero onError={() => setFailedSources((sources) => [...sources, image.src])} />;
+  if (loading) return <Skeleton className={styles.detailImageSkeleton} />;
+  return preview || refreshed ? <div className={styles.imageError} role="alert">이미지를 불러오지 못했어요.</div> : null;
 }
 
 function AssetIcon({ name }: { name: string }) {
@@ -112,6 +122,8 @@ function MemberCollection({ memberId }: { memberId: string }) {
   const selected = state.selectedId !== null;
   const listLoading = state.status === "loading";
   const detailLoading = state.detailStatus === "loading";
+  const previewImage = state.detailNotFound ? undefined : state.items.find((item) => item.id === state.selectedId)?.image;
+  const detailImage = <DetailImage key={state.selectedId} preview={previewImage} refreshed={state.detail?.image} loading={detailLoading} />;
 
   useEffect(() => {
     void controller.load();
@@ -214,15 +226,15 @@ function MemberCollection({ memberId }: { memberId: string }) {
     </div>
     {selected && (isMobile
       ? <article className={styles.mobileDetail} aria-label="고민일기 상세" aria-busy={detailLoading}>
-        <div className={styles.mobileHero}>{detailLoading && <Skeleton className={styles.detailImageSkeleton} />}{state.detail && <RecordImage image={state.detail.image} hero />}
+        <div className={styles.mobileHero}>{detailImage}
           <button className={styles.backButton} type="button" aria-label="컬렉션으로 돌아가기" onClick={close} autoFocus>←</button>
         </div>
         <div className={styles.mobileDetailBody}>{detailBody}</div>
       </article>
       : <dialog ref={dialog} className={styles.dialog} aria-label="고민일기 상세" aria-busy={detailLoading} onCancel={(event) => { event.preventDefault(); close(); }}
         onClick={(event) => { if (event.target === event.currentTarget) { const box = event.currentTarget.getBoundingClientRect(); if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) close(); } }}>
-        {(detailLoading || state.detail) && <div className={styles.desktopImage}>
-          {detailLoading ? <Skeleton className={styles.detailImageSkeleton} /> : state.detail && <RecordImage image={state.detail.image} hero />}
+        {(detailLoading || previewImage || state.detail) && <div className={styles.desktopImage}>
+          {detailImage}
         </div>}
         <button className={styles.closeButton} type="button" aria-label="상세 닫기" onClick={close} autoFocus><AssetIcon name="close" /></button>
         <div className={styles.desktopSummary}>

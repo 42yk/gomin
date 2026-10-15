@@ -128,3 +128,5 @@
 }
 .filmCard .photo, .mobileCard .photo { height: auto; }
 .filmCard[aria-hidden="true"], .mobileCard[aria-hidden="true"] { cursor: default; pointer-events: none; }
+
+.imageError { display: grid; place-items: center; width: 100%; aspect-ratio: 1; padding: 24px; color: #344350; background: #e1e5dc; text-align: center; font: 16px/1.5 sans-serif; }
