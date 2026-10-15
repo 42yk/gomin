@@ -1,5 +1,12 @@
 # 프로젝트 문서
 
+## 프로젝트 소개·기획
+
+- [프로젝트 구조](final-project/README.md): 소개·기획, 요구사항, 기술·검증, 협업, 사용자 테스트, 증빙·발표 문서 목차
+- [고민일기 프로젝트 소개](final-project/overview.md): 서비스 가치, 이용 흐름, AI 활용, 팀 역할과 제출 링크
+- [요구사항](final-project/requirements/README.md): 회원·인증, 홈, 가이드, 털어놓기, 컬렉션과 비기능 기준
+- [고민일기 프로젝트 기획서](final-project/proposal.md): 문제 정의, 타겟, MVP 범위, 초기 사용자 피드백과 개선
+
 ## 스터디·웹 개발 기초
 
 - [웹 개발 기초 목차](study/README.md)
