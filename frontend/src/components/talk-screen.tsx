@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
 import { TalkHistory } from "@/components/talk-history";
+import { Skeleton } from "@/components/loading-feedback";
 import { PageShell } from "@/components/page-shell";
 import { SummaryDiary } from "@/components/summary-diary";
 import { useAuth } from "@/providers/auth-provider";
@@ -14,6 +15,23 @@ import styles from "./talk-screen.module.css";
 export function TalkScreen({ conversationId, summaryId }: { conversationId?: string; summaryId?: string }) {
   const { member } = useAuth();
   return member ? <TalkSession key={`${member.id}:${conversationId ?? "new"}:${summaryId ?? ""}`} conversationId={conversationId} summaryId={summaryId} /> : null;
+}
+
+function ConversationSkeleton() {
+  return <div className={styles.conversationSkeleton} role="status" aria-label="대화 불러오는 중" aria-busy="true">
+    <div className={styles.transcript} aria-hidden="true">
+      <div className={styles.heading}><Skeleton className={styles.skeletonPortrait} /><Skeleton className={styles.skeletonHeading} /></div>
+      <ol className={styles.messages}>
+        {[false, true, false, true].map((user, index) => <li key={index} className={`${user ? styles.user : styles.assistant} ${styles.skeletonMessage}`}>
+          {!user && <Skeleton className={styles.skeletonAvatar} />}
+          <div><Skeleton className={styles.skeletonSpeaker} />
+            <div className={styles.bubble}><Skeleton className={styles.skeletonText} /><Skeleton className={styles.skeletonTextShort} /></div>
+          </div>
+        </li>)}
+      </ol>
+    </div>
+    <div className={styles.composer} aria-hidden="true"><Skeleton className={styles.skeletonInput} /><div className={styles.composerFooter}><Skeleton className={styles.skeletonSend} /></div></div>
+  </div>;
 }
 
 function SummarySections({ summary }: { summary: TalkSummary }) {
@@ -66,7 +84,7 @@ export function TalkSession({ conversationId, summaryId, api = talkApi, onConfir
   const summary = state.handoff?.summary ?? state.conversation?.summaries.at(-1);
   const count = messageLength(state.draft);
   const messages = [...(state.conversation?.messages ?? []), ...(state.pendingMessage ? [state.pendingMessage] : [])];
-  const initial = state.view === "conversation" && messages.length === 0;
+  const initial = state.status === "ready" && state.view === "conversation" && messages.length === 0;
   async function confirmSummary() {
     await controller.confirm();
     const handoff = controller.getSnapshot().handoff;
@@ -81,7 +99,7 @@ export function TalkSession({ conversationId, summaryId, api = talkApi, onConfir
   if (diarySummaryId) return <SummaryDiary summaryId={diarySummaryId} />;
   return <PageShell page="talk" contentClassName={styles.content} headerAction={<TalkHistory currentId={state.conversation?.id ?? conversationId} />}>
     <div className={`${styles.surface} ${initial ? styles.initial : ""}`}>
-      {state.status === "loading" ? <p className={styles.notice} role="status">저장된 대화를 불러오고 있어요.</p>
+      {state.status === "loading" ? <ConversationSkeleton />
         : state.status === "error" ? <p className={styles.error} role="alert">{state.error}</p>
         : state.view === "summary" || state.view === "handoff" ? <div className={styles.summary}>
           <div className={styles.heading}><Image src="/images/navigation/profile-character.png" width={96} height={80} alt="모리" /><h1>지금까지의 고민 요약</h1><p>네 이야기를 차곡차곡 정리했어요.</p></div>

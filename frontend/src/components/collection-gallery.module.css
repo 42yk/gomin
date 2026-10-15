@@ -109,3 +109,24 @@
   .emotionTags li { min-width: calc((100% - 12px) / 3); padding: 5px 8px; font-size: clamp(12px, 3.194444vw, 23px); }
   .detailState { min-height: 180px; padding-top: 24px; }
 }
+
+.detailImageSkeleton { height: auto; aspect-ratio: 1; border-radius: 8px; }
+.skeletonDate { width: 28%; height: 14px; margin: 6px auto 16px; }
+.skeletonTitle { width: 75%; height: clamp(28px, 2.109375vw, 54px); margin: 0 auto 18px; }
+.skeletonCaption { width: 85%; height: 14px; margin: 10px auto; }
+.skeletonIcon { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; }
+.skeletonLabel { width: 40%; height: 20px; margin-bottom: 16px; }
+.skeletonLine, .skeletonLineShort { height: 14px; margin-top: 10px; }
+.skeletonLineShort { width: 70%; }
+.cardSkeletonDate { width: 42%; height: 24px; margin-top: 20px; }
+.cardSkeletonTitle { width: 70%; height: 28px; margin-top: 16px; }
+@media (max-width: 767px) {
+  .cardSkeletonDate { height: 12px; margin-top: 2vw; }
+  .cardSkeletonTitle { height: 14px; margin-top: 2vw; }
+  .skeletonDate, .skeletonTitle, .skeletonCaption { margin-left: 0; }
+  .mobileHero:has(.detailImageSkeleton) { min-height: 0; }
+}
+.filmCard .photo, .mobileCard .photo { height: auto; }
+.filmCard[aria-hidden="true"], .mobileCard[aria-hidden="true"] { cursor: default; pointer-events: none; }
+
+.imageError { display: grid; place-items: center; width: 100%; aspect-ratio: 1; padding: 24px; color: #344350; background: #e1e5dc; text-align: center; font: 16px/1.5 sans-serif; }

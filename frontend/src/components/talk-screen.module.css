@@ -90,3 +90,21 @@
 @keyframes typing-dot-two { 0%, 100% { opacity: 0; } 33.333% { opacity: 1; } }
 @keyframes typing-dot-three { 0%, 100% { opacity: 0; } 66.667% { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .typing > span > span { animation: none; opacity: 1; } }
+
+.conversationSkeleton { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.skeletonPortrait { width: 96px; height: 80px; margin: 0 auto 16px; border-radius: 50%; }
+.skeletonHeading { width: min(260px, 70%); height: 32px; margin: 0 auto 12px; }
+.skeletonMessage { width: min(520px, 80%); }
+.skeletonMessage > div { flex: 1; }
+.skeletonAvatar { flex-shrink: 0; width: 48px; height: 40px; border-radius: 50%; }
+.skeletonSpeaker { width: 36px; height: 14px; margin-bottom: 8px; }
+.user .skeletonSpeaker { margin-left: auto; }
+.skeletonText { height: 14px; margin: 5px 0 12px; }
+.skeletonTextShort { width: 65%; height: 14px; margin-bottom: 5px; }
+.skeletonInput { width: 65%; height: 18px; margin: 8px 6px; }
+.skeletonSend { width: 44px; height: 44px; border-radius: 50%; }
+@media (max-width: 767px) {
+  .skeletonPortrait { width: 72px; height: 60px; }
+  .skeletonAvatar { width: 36px; height: 30px; }
+  .skeletonMessage { width: 85%; }
+}
