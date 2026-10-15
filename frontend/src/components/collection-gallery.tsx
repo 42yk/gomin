@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { Skeleton } from "@/components/loading-feedback";
 import { PageShell } from "@/components/page-shell";
 import { useAuth } from "@/providers/auth-provider";
 import {
@@ -69,6 +70,29 @@ function DetailContent({ detail }: { detail: CollectionDetail }) {
   </>;
 }
 
+function DetailSkeleton() {
+  return <div role="status" aria-label="이야기 불러오는 중">
+    <div className={styles.detailHeading} aria-hidden="true">
+      <Skeleton className={styles.skeletonDate} />
+      <Skeleton className={styles.skeletonTitle} />
+      <Skeleton className={styles.skeletonCaption} />
+      <Skeleton className={styles.skeletonCaption} />
+    </div>
+    <div className={styles.summaryCards} aria-hidden="true">
+      {[styles.mind, styles.concern, styles.emotions].map((kind) => <div key={kind} className={`${styles.summaryCard} ${kind}`}>
+        <Skeleton className={styles.skeletonIcon} /><div>
+          <Skeleton className={styles.skeletonLabel} />
+          <Skeleton className={styles.skeletonLine} /><Skeleton className={styles.skeletonLineShort} />
+        </div>
+      </div>)}
+    </div>
+  </div>;
+}
+
+function CardSkeleton() {
+  return <><Skeleton className={styles.photo} /><Skeleton className={styles.cardSkeletonDate} /><Skeleton className={styles.cardSkeletonTitle} /></>;
+}
+
 export function CollectionGallery() {
   const { member } = useAuth();
   return member ? <MemberCollection key={member.id} memberId={member.id} /> : null;
@@ -86,6 +110,8 @@ function MemberCollection({ memberId }: { memberId: string }) {
   const start = state.page * COLLECTION_PAGE_SIZE;
   const pageItems = items.slice(start, start + COLLECTION_PAGE_SIZE);
   const selected = state.selectedId !== null;
+  const listLoading = state.status === "loading";
+  const detailLoading = state.detailStatus === "loading";
 
   useEffect(() => {
     void controller.load();
@@ -127,7 +153,7 @@ function MemberCollection({ memberId }: { memberId: string }) {
     void controller.select(id);
   };
   const detailBody = state.detailStatus === "loading"
-    ? <div className={styles.detailState} role="status">이야기를 불러오는 중이에요…</div>
+    ? <DetailSkeleton />
     : state.detailStatus === "error"
       ? <div className={styles.detailState} role="alert">
         <h2 id="collection-detail-title">{state.detailNotFound ? "기록을 찾을 수 없어요." : "이야기를 불러오지 못했어요."}</h2>
@@ -145,37 +171,41 @@ function MemberCollection({ memberId }: { memberId: string }) {
       <nav className={styles.filters} aria-label="감정별 컬렉션">
         {collectionCategories.map((category) => <button type="button" key={category} aria-pressed={state.category === category} onClick={() => controller.filter(category)}>{category}</button>)}
       </nav>
-      {state.status === "loading" ? <div className={styles.feedback} role="status">컬렉션을 불러오는 중이에요…</div>
-        : state.status === "error" ? <div className={styles.feedback} role="alert">
+      {state.status === "error" ? <div className={styles.feedback} role="alert">
           <h2>컬렉션을 불러오지 못했어요.</h2><p>연결을 확인하고 다시 시도해 주세요.</p>
           <button type="button" onClick={() => void controller.load()}>다시 시도</button>
         </div>
-          : !items.length ? <div className={styles.feedback}>
+          : !listLoading && !items.length ? <div className={styles.feedback}>
             <h2>{state.items.length ? "이 감정의 이야기는 아직 없어요." : "아직 모아둔 이야기가 없어요."}</h2>
             <p>{state.items.length ? "다른 감정을 골라 이야기를 만나보세요." : "오늘의 마음을 털어놓고, 첫 번째 이야기를 남겨보세요."}</p>
             {state.items.length ? <button type="button" onClick={() => controller.filter("전체")}>전체 이야기 보기</button> : <Link href="/talk">털어놓기 시작하기</Link>}
           </div>
             : <>
-              <section className={styles.desktopFilm} aria-label="고민일기 필름" hidden={isMobile}>
-                <button className={`${styles.arrow} ${styles.previous}`} type="button" aria-label="이전 기록" disabled={state.page === 0} onClick={() => controller.move(-1)}>‹</button>
+              <section className={styles.desktopFilm} aria-label="고민일기 필름" aria-busy={listLoading} hidden={isMobile}>
+                <button className={`${styles.arrow} ${styles.previous}`} type="button" aria-label="이전 기록" disabled={listLoading || state.page === 0} onClick={() => controller.move(-1)}>‹</button>
                 <div className={styles.filmWrapper} ref={canvasWrapper}>
                   <div className={styles.filmCanvas} style={{ transform: `scale(${scale})` }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img className={styles.ribbon} src="/images/collection/film.svg" alt="" />
                     {filmPerforations.map((hole, index) => <span key={index} aria-hidden="true" className={styles.perforation}
                       style={{ left: hole.x, top: hole.y, width: hole.w, height: hole.h }}><i style={{ transform: `rotate(${hole.angle}deg)` }} /></span>)}
-                    {pageItems.map((item, index) => <button type="button" key={item.id} className={styles.filmCard}
+                    {listLoading && cardPositions.map((position, index) => <div key={index} className={styles.filmCard} aria-hidden="true"
+                      style={{ left: position.x, top: position.y, transform: `rotate(${position.angle}deg)` }}><CardSkeleton /></div>)}
+                    {!listLoading && pageItems.map((item, index) => <button type="button" key={item.id} className={styles.filmCard}
                       style={{ left: cardPositions[index].x, top: cardPositions[index].y, transform: `rotate(${cardPositions[index].angle}deg)` }}
                       aria-label={`${formatDate(item.date)} ${item.title} 상세 보기`} onClick={(event) => open(item.id, event.currentTarget)}>
                       <RecordImage image={item.image} /><time dateTime={item.date}>{formatDate(item.date)}</time><span>{item.title}</span>
                     </button>)}
                   </div>
                 </div>
-                <button className={`${styles.arrow} ${styles.next}`} type="button" aria-label="다음 기록" disabled={start + COLLECTION_PAGE_SIZE >= items.length} onClick={() => controller.move(1)}>›</button>
-                <span className={styles.srOnly} role="status">{items.length}개 중 {start + 1}부터 {start + pageItems.length}번째 이야기</span>
+                <button className={`${styles.arrow} ${styles.next}`} type="button" aria-label="다음 기록" disabled={listLoading || start + COLLECTION_PAGE_SIZE >= items.length} onClick={() => controller.move(1)}>›</button>
+                <span className={styles.srOnly} role="status">{listLoading ? "컬렉션 불러오는 중" : `${items.length}개 중 ${start + 1}부터 ${start + pageItems.length}번째 이야기`}</span>
               </section>
-              <section className={styles.mobileFilm} aria-label="고민일기 목록" hidden={!isMobile}>
-                <div className={styles.mobileCards}>{items.map((item) => <button type="button" key={item.id} className={styles.mobileCard}
+              <section className={styles.mobileFilm} aria-label="고민일기 목록" aria-busy={listLoading} hidden={!isMobile}>
+                {listLoading && <span className={styles.srOnly} role="status">컬렉션 불러오는 중</span>}
+                <div className={styles.mobileCards}>
+                  {listLoading && cardPositions.map((_, index) => <div key={index} className={styles.mobileCard} aria-hidden="true"><CardSkeleton /></div>)}
+                  {!listLoading && items.map((item) => <button type="button" key={item.id} className={styles.mobileCard}
                   aria-label={`${formatDate(item.date)} ${item.title} 상세 보기`} onClick={(event) => open(item.id, event.currentTarget)}>
                   <RecordImage image={item.image} /><time dateTime={item.date}>{formatDate(item.date)}</time><span>{item.title}</span>
                 </button>)}</div>
@@ -183,16 +213,16 @@ function MemberCollection({ memberId }: { memberId: string }) {
             </>}
     </div>
     {selected && (isMobile
-      ? <article className={styles.mobileDetail} aria-label="고민일기 상세">
-        <div className={styles.mobileHero}>{state.detail && <RecordImage image={state.detail.image} hero />}
+      ? <article className={styles.mobileDetail} aria-label="고민일기 상세" aria-busy={detailLoading}>
+        <div className={styles.mobileHero}>{detailLoading && <Skeleton className={styles.detailImageSkeleton} />}{state.detail && <RecordImage image={state.detail.image} hero />}
           <button className={styles.backButton} type="button" aria-label="컬렉션으로 돌아가기" onClick={close} autoFocus>←</button>
         </div>
         <div className={styles.mobileDetailBody}>{detailBody}</div>
       </article>
-      : <dialog ref={dialog} className={styles.dialog} aria-label="고민일기 상세" onCancel={(event) => { event.preventDefault(); close(); }}
+      : <dialog ref={dialog} className={styles.dialog} aria-label="고민일기 상세" aria-busy={detailLoading} onCancel={(event) => { event.preventDefault(); close(); }}
         onClick={(event) => { if (event.target === event.currentTarget) { const box = event.currentTarget.getBoundingClientRect(); if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) close(); } }}>
-        {state.detail && <div className={styles.desktopImage}>
-          <RecordImage image={state.detail.image} hero />
+        {(detailLoading || state.detail) && <div className={styles.desktopImage}>
+          {detailLoading ? <Skeleton className={styles.detailImageSkeleton} /> : state.detail && <RecordImage image={state.detail.image} hero />}
         </div>}
         <button className={styles.closeButton} type="button" aria-label="상세 닫기" onClick={close} autoFocus><AssetIcon name="close" /></button>
         <div className={styles.desktopSummary}>

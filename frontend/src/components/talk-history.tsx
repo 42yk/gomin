@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LoadingSpinner } from "@/components/loading-feedback";
 import { useEffect, useRef, useState } from "react";
 import { talkApi } from "@/lib/talk-api";
 import { groupTalkHistory, type UnsavedConversation } from "@/lib/talk-history";
@@ -57,7 +58,7 @@ export function TalkHistory({ currentId }: { currentId?: string }) {
         window.location.assign("/talk");
       }}>새 이야기 시작하기 <span aria-hidden="true">＋</span></Link>
       {error ? <div role="alert"><p>대화 목록을 불러오지 못했어요.</p><button className={styles.retry} type="button" onClick={() => { setHistory(null); setError(false); setAttempt(n => n + 1); }}>다시 불러오기</button></div>
-        : history === null ? <p role="status">이야기를 불러오고 있어요…</p>
+        : history === null ? <LoadingSpinner label="이전 대화 불러오는 중" />
         : history.length === 0 ? null
         : <nav aria-label="미저장 대화 목록">{groupTalkHistory(history).map(group => <section key={group.date}>
           <h3>{group.date}</h3><ul>{group.items.map(item => <li key={item.id}><Link href={`/talk/${item.id}`} aria-current={currentId === item.id ? "page" : undefined} onClick={close}>{item.title}</Link></li>)}</ul>

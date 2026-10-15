@@ -109,7 +109,7 @@ try {
     assert.ok(initialBox.y > headingBox.y + headingBox.height && initialBox.y - headingBox.y - headingBox.height < 80);
     if (viewport.width >= 768) assert.equal(await page.getByRole('link', { name: '홈으로 돌아가기', exact: true }).count(), 0);
     await page.getByRole('button', { name: '미저장 대화 목록 펼치기' }).click();
-    await page.getByText('이야기를 불러오고 있어요…').waitFor({ state: 'hidden' });
+    await page.getByRole('status', { name: '이전 대화 불러오는 중' }).waitFor({ state: 'hidden' });
     assert.equal(await page.getByRole('navigation', { name: '미저장 대화 목록', exact: true }).count(), 0);
     const sidebarBox = await page.getByRole('complementary', { name: '미저장 대화', exact: true }).boundingBox();
     assert.equal(sidebarBox.x, 0);
