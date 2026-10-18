@@ -8,7 +8,7 @@
 
 ## 기존 검증 기록
 
-다음은 [털어놓기 MVP 검증 기록](../engineering/talk-mvp-qa.md)에 남아 있는 결과다. 문서 작성 중 새로 실행한 테스트 결과가 아니다.
+다음은 [털어놓기 MVP 검증 기록](../../engineering/talk-mvp-qa.md)에 남아 있는 결과다. 문서 작성 중 새로 실행한 테스트 결과가 아니다.
 
 | 검증 | 기록된 결과 | 확인 범위 |
 | --- | --- | --- |
@@ -40,9 +40,9 @@ Chrome 검증 화면 크기는 1440×900, 390×844, 320×568, 667×375다. 모�
 
 ## 근거
 
-- [기존 QA 기록](../engineering/talk-mvp-qa.md)
-- [배포·운영 구성](../deployment/README.md)
-- [UptimeRobot 모니터링](../deployment/uptimerobot.md)
-- [사용자 테스트 결과](user-testing/results.md)
+- [기존 QA 기록](../../engineering/talk-mvp-qa.md)
+- [배포·운영 구성](../../deployment/README.md)
+- [UptimeRobot 모니터링](../../deployment/uptimerobot.md)
+- [사용자 테스트 결과](user-testing.md)
 
-[프로젝트 구조](README.md)
+[프로젝트 구조](../README.md)
