@@ -37,7 +37,8 @@ const formatDate = (date: string, weekday = false) => {
 function RecordImage({ image, hero = false, onError }: { image: CollectionImage; hero?: boolean; onError?: () => void }) {
   return <div className={`${styles.photo} ${hero ? styles.heroPhoto : ""}`}>
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={image.src} alt="" onError={onError} />
+    <img src={image.src} alt="AI가 생성한 고민일기 이미지" onError={onError} />
+    <span className={styles.aiBadge} aria-hidden="true">AI</span>
   </div>;
 }
 
@@ -205,7 +206,7 @@ function MemberCollection({ memberId }: { memberId: string }) {
                       style={{ left: position.x, top: position.y, transform: `rotate(${position.angle}deg)` }}><CardSkeleton /></div>)}
                     {!listLoading && pageItems.map((item, index) => <button type="button" key={item.id} className={styles.filmCard}
                       style={{ left: cardPositions[index].x, top: cardPositions[index].y, transform: `rotate(${cardPositions[index].angle}deg)` }}
-                      aria-label={`${formatDate(item.date)} ${item.title} 상세 보기`} onClick={(event) => open(item.id, event.currentTarget)}>
+                      aria-label={`${formatDate(item.date)} ${item.title}, AI가 생성한 이미지 상세 보기`} onClick={(event) => open(item.id, event.currentTarget)}>
                       <RecordImage image={item.image} /><time dateTime={item.date}>{formatDate(item.date)}</time><span>{item.title}</span>
                     </button>)}
                   </div>
@@ -218,7 +219,7 @@ function MemberCollection({ memberId }: { memberId: string }) {
                 <div className={styles.mobileCards}>
                   {listLoading && cardPositions.map((_, index) => <div key={index} className={styles.mobileCard} aria-hidden="true"><CardSkeleton /></div>)}
                   {!listLoading && items.map((item) => <button type="button" key={item.id} className={styles.mobileCard}
-                  aria-label={`${formatDate(item.date)} ${item.title} 상세 보기`} onClick={(event) => open(item.id, event.currentTarget)}>
+                  aria-label={`${formatDate(item.date)} ${item.title}, AI가 생성한 이미지 상세 보기`} onClick={(event) => open(item.id, event.currentTarget)}>
                   <RecordImage image={item.image} /><time dateTime={item.date}>{formatDate(item.date)}</time><span>{item.title}</span>
                 </button>)}</div>
               </section>
