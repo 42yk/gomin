@@ -17,7 +17,7 @@ DB 비밀번호나 `DATABASE_URL`은 백엔드 실행에 필요하지 않습니�
 
 Render의 Root Directory는 `backend`, Build Command는 `pip install -r requirements.txt`, Start Command는 `uvicorn app.main:app --host 0.0.0.0 --port $PORT`로 지정합니다. Python 3.12 이상을 사용합니다. `backend/.python-version`의 `3.12`는 배포 기본 버전이며 최소 버전 제한과는 별개입니다. 다른 버전으로 배포하려면 해당 파일도 맞춰 변경하세요.
 
-그림일기 생성에는 Copa 텍스트용 `AI_API_KEY`와 Gemini 이미지용 `GEMINI_API_KEY`를 등록한다.
+그림일기 생성에는 네이토 텍스트용 `AI_API_KEY`와 Gemini 이미지용 `GEMINI_API_KEY`를 등록한다.
 모리 참조 이미지는 `backend/app/assets/mori.png`에 포함되어 프론트엔드 파일이나 공개 URL 조회 없이 사용한다.
 이미지 교체 시 원본·백엔드 복사본을 함께 갱신하는 기준과 제공자 설정은 [그림일기 MVP](../engineering/diary-mvp.md)를 따른다.
 

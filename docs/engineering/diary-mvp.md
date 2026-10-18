@@ -47,10 +47,10 @@
 
 | 설정 | 기본값/용도 |
 | --- | --- |
-| `AI_API_KEY` | Copa 텍스트 구성용 서버 전용 가상 키, 기본 빈 값 |
+| `AI_API_KEY` | 네이토 텍스트 구성용 서버 전용 가상 키, 기본 빈 값 |
 | `AI_BASE_URL` | `https://copa.codyssey.kr` |
 | `AI_TEXT_MODEL` | `gpt-5.4-mini` |
-| `AI_TIMEOUT_SECONDS` | Copa 요청 120초 |
+| `AI_TIMEOUT_SECONDS` | 네이토 요청 120초 |
 | `GEMINI_API_KEY` | Google AI Studio에서 발급한 서버 전용 API 키, 기본 빈 값 |
 | `GEMINI_BASE_URL` | `https://generativelanguage.googleapis.com` |
 | `GEMINI_IMAGE_MODEL` | `gemini-2.5-flash-image` |
@@ -58,7 +58,7 @@
 | `GEMINI_TIMEOUT_SECONDS` | 개별 제공자 요청 120초 |
 | `DIARY_IMAGE_BUCKET` | 비공개 `gomin-diary-images` |
 
-제목·위로·이미지 프롬프트 구성은 기존 Copa의 `/v1/chat/completions`에 POST한다.
+제목·위로·이미지 프롬프트 구성은 기존 네이토의 `/v1/chat/completions`에 POST한다.
 `AI_API_KEY`를 Bearer 인증으로 전달하고 `AI_TEXT_MODEL`과 system/user 메시지를 사용한다.
 요약의 지금의 마음·주요 고민·감정 태그만 텍스트 구성 요청에 포함한다.
 위로 문구는 공백·문장부호 포함 50~80자의 한국어 두 문장으로 요청한다. 감정에 대한 공감과 부담을 덜어 주는 위로를
@@ -74,7 +74,7 @@
 장면에는 장소·행동·표정과 필요한 복색·소품·빛·구도만 쓰고, 외형·그림체 지시는 Gemini 공통 지시에만 둔다.
 생성 결과와 컬렉션 상세의 이미지 위에는 메시지를 얹지 않는다. 제목·위로 문구는 이미지 밖의 기존 영역에 표시한다.
 이미지 생성만 Gemini API의 `/v1beta/models/{모델 ID}:generateContent`에 POST한다.
-`GEMINI_API_KEY`를 `x-goog-api-key` 헤더로 전달하며 Copa에서 만든 이미지 프롬프트와 모리 참조 이미지를 보낸다.
+`GEMINI_API_KEY`를 `x-goog-api-key` 헤더로 전달하며 네이토에서 만든 이미지 프롬프트와 모리 참조 이미지를 보낸다.
 모리는 [원본 mori.png](../../frontend/public/images/character/mori.png)의 캐릭터로,
 백엔드 단독 배포에도 포함되도록 [동일한 PNG](../../backend/app/assets/mori.png)를 서버 자산으로 보관한다.
 이미지를 교체할 때는 두 파일을 함께 갱신하며 테스트에서 동일 바이트와 PNG 형식을 확인한다.
@@ -95,10 +95,10 @@ Gemini 요청의 `contents.parts`에는 모리 외형·그림체 유지 지시, 
 `content.parts`에서 thought가 아닌 `inlineData.data`의 Base64를 디코딩해 실제 이미지 형식과 용량을 확인하고 Storage에 저장한다.
 DB에는 이미지 bucket/object key만 저장하고 조회 시 서명 URL을 발급한다.
 
-기존 Copa용 `AI_API_KEY`, `AI_BASE_URL`, `AI_TEXT_MODEL`, `AI_TIMEOUT_SECONDS`는 유지한다.
+기존 네이토용 `AI_API_KEY`, `AI_BASE_URL`, `AI_TEXT_MODEL`, `AI_TIMEOUT_SECONDS`는 유지한다.
 이미지용 `GEMINI_*` 설정을 추가한 뒤 백엔드를 재시작한다.
 기존 `AI_IMAGE_MODEL`, `AI_IMAGE_SIZE`, `AI_IMAGE_RESPONSE_FORMAT`은 사용하지 않는다.
-Gemini 키·이미지 모델이나 모리 참조 파일이 누락되면 유료 Copa 요청 전에 설정 오류를 반환한다.
+Gemini 키·이미지 모델이나 모리 참조 파일이 누락되면 유료 네이토 요청 전에 설정 오류를 반환한다.
 키는 [Google AI Studio](https://aistudio.google.com/apikey)에서 발급하며,
 요청·응답 규격은 [Gemini 이미지 생성 공식 문서](https://ai.google.dev/gemini-api/docs/generate-content/image-generation)를 따른다.
 

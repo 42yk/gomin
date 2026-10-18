@@ -1,11 +1,12 @@
 # 프로젝트 문서
 
-## 프로젝트 소개·기획
+## 프로젝트 기획·요구 명세
 
-- [프로젝트 구조](final-project/README.md): 소개·기획, 요구사항, 기술·검증, 협업, 사용자 테스트, 증빙·발표 문서 목차
-- [고민일기 프로젝트 소개](final-project/overview.md): 서비스 가치, 이용 흐름, AI 활용, 팀 역할과 제출 링크
-- [요구사항](final-project/requirements/README.md): 회원·인증, 홈, 가이드, 털어놓기, 컬렉션과 비기능 기준
-- [고민일기 프로젝트 기획서](final-project/proposal.md): 문제 정의, 타겟, MVP 범위, 초기 사용자 피드백과 개선
+- [프로젝트 문서](final-project/README.md): 기획서, 기능 요구 명세서와 참고 자료 목차
+- [프로젝트 기획서](final-project/proposal.md): 문제 정의, 타겟 사용자, AI 활용 방식, 기술적 접근과 일정 계획
+- [기술 스택 선정 이유](final-project/technology-selection.md): 과제 경험, AI 개발 지원, API 비용과 운영 부담을 고려한 선택 근거
+- [기능 요구 명세서](final-project/requirements/README.md): 기능·비기능 요구사항과 시스템 아키텍처
+- [사용자 피드백과 개선 결과](final-project/references/user-testing.md): 실사용자 5명의 피드백과 개선 내용
 
 ## 스터디·웹 개발 기초
 

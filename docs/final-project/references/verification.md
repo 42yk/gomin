@@ -8,7 +8,7 @@
 
 ## 기존 검증 기록
 
-다음은 [털어놓기 MVP 검증 기록](../engineering/talk-mvp-qa.md)에 남아 있는 결과다. 문서 작성 중 새로 실행한 테스트 결과가 아니다.
+다음은 [털어놓기 MVP 검증 기록](../../engineering/talk-mvp-qa.md)에 남아 있는 결과다. 문서 작성 중 새로 실행한 테스트 결과가 아니다.
 
 | 검증 | 기록된 결과 | 확인 범위 |
 | --- | --- | --- |
@@ -36,13 +36,13 @@ Chrome 검증 화면 크기는 1440×900, 390×844, 320×568, 667×375다. 모�
 
 ## 운영 모니터링
 
-프로젝트 운영 문서에는 UptimeRobot이 백엔드 `/api/v1/health`를 5분 간격으로 확인하고 이메일로 알린다고 명시되어 있다. 이 상태 API는 서버 응답을 확인하며 DB·Storage·메일·로그인의 정상 동작까지 보장하지 않는다.
+프로젝트 운영 문서에는 UptimeRobot이 백엔드 `/api/v1/health`를 5분 간격으로 확인하고 이메일로 알린다. 이 상태 API는 서버 응답을 확인하며 DB·Storage·메일·로그인의 정상 동작까지 보장하지 않는다.
 
 ## 근거
 
-- [기존 QA 기록](../engineering/talk-mvp-qa.md)
-- [배포·운영 구성](../deployment/README.md)
-- [UptimeRobot 모니터링](../deployment/uptimerobot.md)
-- [사용자 테스트 결과](user-testing/results.md)
+- [기존 QA 기록](../../engineering/talk-mvp-qa.md)
+- [배포·운영 구성](../../deployment/README.md)
+- [UptimeRobot 모니터링](../../deployment/uptimerobot.md)
+- [사용자 테스트 결과](user-testing.md)
 
-[프로젝트 구조](README.md)
+[프로젝트 구조](../README.md)

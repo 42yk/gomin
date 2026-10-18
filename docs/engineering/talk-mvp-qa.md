@@ -16,7 +16,7 @@ PR #46의 `e6fa8e6`을 통합하고 기존 자동 생성·대화 URL 유지 흐�
 - `이 내용으로 정리하기` → 서버 확정 → 현재 대화 URL에서 이미지 생성 요청으로 연결하며, `/talk?summary=…` 이동과 후속 중복 요약 화면·추가 생성 버튼을 제거했다.
 - Chrome 모의 API 검증은 1440×900, 390×844, 320×568, 667×375에서 통과했다. 대화 URL 유지·확정 후 생성 요청 1회, 실패 후 명시적 재시도, 완성 결과와 컬렉션 저장, 확정 요약 재조회·비로그인 보호를 확인했다.
 - 프론트엔드 단위 테스트 53개, lint·typecheck와 문서 생성·링크 검증을 통과했다.
-- 실제 Copa·Gemini·Storage·DB를 함께 사용하는 생성은 이번 검증에 포함하지 않았다.
+- 실제 네이토·Gemini·Storage·DB를 함께 사용하는 생성은 이번 검증에 포함하지 않았다.
 
 ## 실행 결과와 범위
 
@@ -78,11 +78,11 @@ npm --prefix frontend run lint
 npm --prefix frontend run typecheck
 ```
 
-Windows backend 검증은 UTF-8 모드에서 unittest discover를 사용한다(PYTHONUTF8=1). 이번 회귀는 실제 환경 파일을 제외한 `.dev/talk-pr-project/backend`에 app·tests를 복사하고 seed.sql을 같은 임시 프로젝트에 배치한 뒤, PYTHONPATH를 해당 backend로 지정했다. 기존 `backend/.venv/Scripts/python.exe`를 사용하며 main의 잠금 파일과 같은 Pillow 12.3.0을 설치했다. 격리 환경의 Windows asyncio 제약이 있어 실행 권한을 얻어 검증했다.
+Windows backend 검증은 UTF-8 모드에서 unittest discover를 사용한다(PYTHONUTF8=1). 저장소의 `backend/`에서 가상환경의 Python으로 실행한다.
 
 DB 테스트는 `PGLITE_MODULE`에 설치된 `@electric-sql/pglite` 모듈의 파일 URL을 지정하고 `node --test supabase/tests/talk-mvp.test.mjs supabase/tests/conversation-collection.test.mjs`로 실행한다. 저장소의 기존 DB 테스트와 같은 임시 PostgreSQL 방식이다. 로컬 개발 DB 데이터는 초기화하지 않는다.
 
-브라우저 테스트는 `frontend/tests/talk.browser.mjs`다. Chrome과 Playwright가 필요하며 `PLAYWRIGHT_MODULE`에 설치된 모듈 파일 URL, `TALK_QA_URL`에 개발 화면 주소를 지정한다. 최초 검증은 실제 환경 파일을 포함하지 않는 `.dev/talk-preview` 복사본의 3011 포트, 최신 main 반영 후 검증은 `.dev/talk-pr-project` 격리 프로덕션 빌드의 3012 포트에서 수행했다. 두 검증 모두 API를 전부 가로챘다. 테스트 화면 캡처는 Git-ignored `.dev/talk-qa/`에 저장한다. 별도 임시 도구 설치는 루트·frontend 의존성 파일을 변경하지 않았다.
+브라우저 테스트는 `frontend/tests/talk.browser.mjs`다. Chrome과 Playwright가 필요하며 `PLAYWRIGHT_MODULE`에 설치된 모듈 파일 URL, `TALK_QA_URL`에 실행 중인 화면 주소를 지정한다. API를 전부 가로채는 모의 검증이다.
 
 ## Jira 기록과 공유 설계
 

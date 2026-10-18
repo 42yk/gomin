@@ -47,12 +47,12 @@ AI는 서비스의 대화 상대이자 기록을 만드는 도구다. 사용자�
 | --- | --- |
 | 웹 화면 | Next.js, React, TypeScript |
 | 서버 | Python, FastAPI, Uvicorn |
-| 대화·요약·텍스트 구성 | Copa를 통한 생성형 AI 호출 |
+| 대화·요약·텍스트 구성 | 네이토를 통한 생성형 AI 호출 |
 | 이미지 생성 | Gemini API |
 | 데이터·파일 저장 | Supabase PostgreSQL, Supabase Storage |
 | 배포 구성 | Vercel, Render |
 
-자세한 구성은 [시스템 아키텍처](../ARCHITECTURE.md), 실행 방법은 [프로젝트 실행 안내](../../README.md)를 참고한다.
+자세한 구성은 [시스템 아키텍처](../../ARCHITECTURE.md), 실행 방법은 [프로젝트 실행 안내](../../../README.md)를 참고한다.
 
 ## 팀 Happy Ending
 
@@ -75,18 +75,17 @@ AI는 서비스의 대화 상대이자 기록을 만드는 도구다. 사용자�
 - 그림이 고민과 동떨어지지 않도록 요약의 상황·행동·감정을 장면에 반영하도록 수정했다.
 - 대화·컬렉션을 기다리는 동안 상태를 알 수 있도록 스켈레톤과 로딩 스피너를 추가했다.
 
-위 내용은 수정 내역을 정리한 것으로, 개선 효과를 수치로 측정하거나 타겟 사용자에게 재검증한 결과는 아니다. 전체 피드백과 반영 근거는 [사용자 테스트 결과](user-testing/results.md)와 [개선 내역](user-testing/improvements.md)에 정리했다.
+위 내용은 수정 내역을 정리한 것으로, 개선 효과를 수치로 측정하거나 타겟 사용자에게 재검증한 결과는 아니다. 전체 피드백과 반영 근거는 [사용자 피드백과 개선 결과](user-testing.md)에 정리했다.
 
 ## 프로젝트 자료
 
 - [배포 서비스](https://www.gomin.today)
 - [GitHub 저장소](https://github.com/gomin-diary/gomin)
-- [프로젝트 기획서](proposal.md)
-- [설치·실행 안내](../../README.md)
+- [프로젝트 기획서](../proposal.md)
+- [설치·실행 안내](../../../README.md)
 - [검증·배포 결과](verification.md)
-- [사용자 테스트 결과](user-testing/results.md)
-- [발표 구성과 시연 대본](presentation/outline.md)
-- [전체 프로젝트 자료](README.md)
+- [사용자 테스트 결과](user-testing.md)
+- [전체 프로젝트 자료](../README.md)
 
 ## 참고 자료
 
