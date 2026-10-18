@@ -2,9 +2,9 @@
 
 ## 배포 서비스
 
-[고민일기](https://www.gomin.today)는 Vercel의 프론트엔드, Render의 백엔드, Supabase의 DB·Storage로 구성한다. 프론트엔드와 백엔드의 배포 완료는 [GOMIN-7](https://younkim.atlassian.net/browse/GOMIN-7), [GOMIN-8](https://younkim.atlassian.net/browse/GOMIN-8)에 기록되어 있다.
+[고민일기](https://www.gomin.today)는 Vercel의 프론트엔드, Render의 백엔드, Supabase의 DB·Storage로 구성한다.
 
-프로젝트 담당자는 배포 환경에서 **대화 → 요약 → 그림 생성 → 저장 → 재조회**를 직접 확인했다. 사용자 테스트도 배포 환경에서 진행했다. 이 결과는 담당자의 직접 확인 내용이며, 아래 자동 검증 기록과는 구분한다.
+통합 테스트와 사용자 테스트는 배포 환경에서 **대화 → 요약 → 그림 생성 → 저장 → 재조회**를 수행하며 확인했다.
 
 ## 기존 검증 기록
 
