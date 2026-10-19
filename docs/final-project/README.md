@@ -19,6 +19,7 @@
 ## 발표·시연 자료
 
 - [발표자료 PPTX](gomin-presentation.pptx)
+- [발표자료 Google Slides](https://docs.google.com/presentation/d/1Kepse_Rnh3sg62i3V0yE0dS6p29cXhsR/edit)
 - [서비스 시연 자료](demo/README.md): 시연영상과 서비스 흐름 단계별 캡처
 
 [전체 문서 목차](../README.md)

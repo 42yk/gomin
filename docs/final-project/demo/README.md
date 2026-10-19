@@ -1,6 +1,7 @@
 # 서비스 시연 자료
 
 [발표자료 PPTX](../gomin-presentation.pptx)
+[발표자료 Google Slides](https://docs.google.com/presentation/d/1Kepse_Rnh3sg62i3V0yE0dS6p29cXhsR/edit)
 
 ## 시연영상
 

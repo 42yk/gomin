@@ -57,6 +57,7 @@ Supabase까지 중지하려면 `npm run supabase:stop`을 실행합니다.
 ## 결과
 
 - [발표자료 PPTX](docs/final-project/gomin-presentation.pptx)
+- [발표자료 Google Slides](https://docs.google.com/presentation/d/1Kepse_Rnh3sg62i3V0yE0dS6p29cXhsR/edit)
 - [시연영상](docs/final-project/demo/gomin-service-demo.mp4): 52초 · 홈부터 대화·그림일기 생성·컬렉션 저장과 조회까지
 - [서비스 흐름 캡처](docs/final-project/demo/README.md): 단계별 화면 11장
 - [검증·배포 결과](docs/final-project/references/verification.md): 배포 환경의 이용 흐름 확인과 기존 자동·격리 검증 기록

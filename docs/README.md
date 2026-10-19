@@ -8,6 +8,7 @@
 - [기능 요구 명세서](final-project/requirements/README.md): 기능·비기능 요구사항과 시스템 아키텍처
 - [사용자 피드백과 개선 결과](final-project/references/user-testing.md): 실사용자 5명의 피드백과 개선 내용
 - [발표자료 PPTX](final-project/gomin-presentation.pptx): 프로젝트 결과 발표자료
+- [발표자료 Google Slides](https://docs.google.com/presentation/d/1Kepse_Rnh3sg62i3V0yE0dS6p29cXhsR/edit)
 - [서비스 시연 자료](final-project/demo/README.md): 시연영상과 서비스 흐름 단계별 캡처
 
 ## 스터디·웹 개발 기초
