@@ -7,6 +7,8 @@
 - [기술 스택 선정 이유](final-project/technology-selection.md): 과제 경험, AI 개발 지원, API 비용과 운영 부담을 고려한 선택 근거
 - [기능 요구 명세서](final-project/requirements/README.md): 기능·비기능 요구사항과 시스템 아키텍처
 - [사용자 피드백과 개선 결과](final-project/references/user-testing.md): 실사용자 5명의 피드백과 개선 내용
+- [발표자료 PPTX](final-project/gomin-presentation.pptx): 프로젝트 결과 발표자료
+- [서비스 시연 자료](final-project/demo/README.md): 시연영상과 서비스 흐름 단계별 캡처
 
 ## 스터디·웹 개발 기초
 

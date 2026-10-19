@@ -16,4 +16,9 @@
 - [검증·배포 결과](references/verification.md)
 - [사용자 피드백과 개선 결과](references/user-testing.md): 실사용자 5명의 피드백과 반영 내용
 
+## 발표·시연 자료
+
+- [발표자료 PPTX](gomin-presentation.pptx)
+- [서비스 시연 자료](demo/README.md): 시연영상과 서비스 흐름 단계별 캡처
+
 [전체 문서 목차](../README.md)
