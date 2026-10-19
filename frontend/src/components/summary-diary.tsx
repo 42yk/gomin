@@ -56,8 +56,11 @@ function MemberDiary({ summaryId }: { summaryId: string }) {
   return <PageShell page="talk" contentClassName={styles.content}><section className={styles.card}>
     {result ? <>
       <h1>{result.title}</h1><time dateTime={result.diary_date}>{result.diary_date}</time>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className={styles.image} src={result.image_url} alt="요약을 바탕으로 생성한 그림일기" />
+      <div className={styles.imageFrame}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className={styles.image} src={result.image_url} alt="AI가 대화 요약을 바탕으로 생성한 그림일기" />
+        <span className={styles.aiBadge} aria-hidden="true">AI</span>
+      </div>
       <p className={styles.encouragement}>{formatEncouragement(result.encouragement_text)}</p>
       {entryId && <p role="status">컬렉션에 저장했어요. <Link href={`/collection#entry=${entryId}`}>저장한 일기 보기</Link></p>}
       <div className={styles.actions}>

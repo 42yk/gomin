@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/loading-feedback";
 import { PageShell } from "@/components/page-shell";
 import { useAuth } from "@/providers/auth-provider";
 import {
-  collectionCategories, COLLECTION_PAGE_SIZE, createCollectionController,
+  COLLECTION_PAGE_SIZE, createCollectionController,
   visibleCollectionItems, type CollectionDetail, type CollectionImage,
 } from "@/lib/collection";
 import { createApiCollectionRepository } from "@/lib/collection-api";
@@ -181,9 +181,6 @@ function MemberCollection({ memberId }: { memberId: string }) {
         <h1>지금까지의 모든 이야기가,<br />하나의 컬렉션으로 모여요.</h1>
         <p>작은 고민도, 소중한 하루도.<br />여기, 나만의 필름 속에.</p>
       </header>
-      <nav className={styles.filters} aria-label="감정별 컬렉션">
-        {collectionCategories.map((category) => <button type="button" key={category} aria-pressed={state.category === category} onClick={() => controller.filter(category)}>{category}</button>)}
-      </nav>
       {state.status === "error" ? <div className={styles.feedback} role="alert">
           <h2>컬렉션을 불러오지 못했어요.</h2><p>연결을 확인하고 다시 시도해 주세요.</p>
           <button type="button" onClick={() => void controller.load()}>다시 시도</button>
